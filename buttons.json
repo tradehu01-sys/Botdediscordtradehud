@@ -1,0 +1,44 @@
+{
+  "tbc": {
+    "Nightslayer": { "buy": true, "sell": true },
+    "Dreamscythe": { "buy": true, "sell": true },
+    "(EU) Spineshatter": { "buy": true, "sell": true },
+    "(EU) Thunderstrike": { "buy": true, "sell": true },
+    "(EU) Soulseeker": { "buy": true, "sell": true }
+  },
+  "albion": {
+    "América": { "buy": true, "sell": true },
+    "Europeo": { "buy": true, "sell": true }
+  },
+  "lineage2": {
+    "Eternal x10 New Season": { "buy": true, "sell": true },
+    "Original x5 New Season": { "buy": true, "sell": true }
+  },
+  "boosting": { "active": true },
+  "warmane": { "active": true },
+  "aion": { "active": true },
+  "aion2": { "active": true },
+  "warbone": { "active": true },
+  "mir4": { "active": true },
+  "diablo2": { "active": true },
+  "osrs": { "active": true },
+  "lawl": { "active": true },
+  "epoch": { "active": true },
+  "ascension": { "active": true },
+  "wowRetailUS": { "active": true },
+  "wowRetailEU": { "active": true },
+  "odin": { "active": true },
+  "dofus": { "active": true },
+  "quinfall": { "active": true },
+  "throne": { "active": true },
+  "torchlight": { "active": true },
+  "poe1": { "active": true },
+  "poe2": { "active": true },
+  "flyff": { "active": true },
+  "rubinot": { "active": true },
+  "tibia": { "active": true },
+  "streaming": { "buy": true },
+  "giftcards": { "buy": true },
+  "p2p": { "buy": true },
+  "wow_gt": { "buy": true }
+}

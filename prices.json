@@ -1,0 +1,207 @@
+{
+  "tbc": {
+    "servers": {
+      "Nightslayer": { "c": "14$", "v": "9$", "qty": "1k" },
+      "Dreamscythe": { "c": "14$", "v": "9$", "qty": "1k" },
+      "(EU) Spineshatter": { "c": "14$", "v": "9$", "qty": "1k" },
+      "(EU) Thunderstrike": { "c": "14$", "v": "9$", "qty": "1k" },
+      "(EU) Soulseeker": { "c": "14$", "v": "9$", "qty": "1k" }
+    }
+  },
+  "albion": {
+    "servers": {
+      "América": { "c": "24$", "v": "18$", "qty": "100M" },
+      "Europeo": { "c": "24$", "v": "18$", "qty": "100M" }
+    }
+  },
+  "lineage2": {
+    "servers": {
+      "Eternal x10 New Season": { "c": "10$", "v": "5$", "qty": "300M" },
+      "Original x5 New Season": { "c": "37$", "v": "22$", "qty": "100M" }
+    }
+  },
+  "boosting": {
+    "games": {
+      "WoW TBC": { "price": "Consultar" },
+      "Albion Online": { "price": "Consultar" },
+      "Lineage 2": { "price": "Consultar" }
+    }
+  },
+  "warmane": {
+    "servers": {
+      "Onyxia": { "c": "0.15$/100g", "v": "0.10$/100g", "qty": "100g" },
+      "Lordaeron": { "c": "0.14$/100g", "v": "0.09$/100g", "qty": "100g" },
+      "Icecrown": { "c": "0.14$/100g", "v": "0.09$/100g", "qty": "100g" }
+    }
+  },
+  "aion": {
+    "servers": {
+      "EUROAION": { "c": "2.20$/100M", "v": "1.40$/100M", "qty": "100M" }
+    }
+  },
+  "aion2": {
+    "servers": {
+      "(TW) Triniel": { "c": "3.50$/10M", "v": "2$/10M", "qty": "10M" },
+      "(TW) Vaziel": { "c": "3.50$/100M", "v": "2$/100M", "qty": "100M" }
+    }
+  },
+  "warbone": {
+    "servers": {
+      "America": { "c": "9.20$/2k", "v": "6.44$/2k", "qty": "2k" },
+      "Europa": { "c": "9.20$/2k", "v": "6.44$/2k", "qty": "2k" }
+    }
+  },
+  "mir4": {
+    "servers": {
+      "ASIA": { "c": "4$/1000g", "v": "2$/1000g", "qty": "1000g" },
+      "EU": { "c": "4$/1000g", "v": "2$/1000g", "qty": "1000g" },
+      "NA": { "c": "4$/1000g", "v": "2$/1000g", "qty": "1000g" },
+      "SA": { "c": "4$/1000g", "v": "2$/1000g", "qty": "1000g" }
+    }
+  },
+  "diablo2": {
+    "servers": {
+      "Diablo 2 Resurrected (PC) Ladder S13 Normal": { "c": "7.10$/100M", "v": "4$/100M", "qty": "100M" }
+    }
+  },
+  "osrs": {
+    "servers": {
+      "Old School RuneScape": { "c": "24$/100M", "v": "17$/100M", "qty": "100M" }
+    }
+  },
+  "lawl": {
+    "servers": {
+      "Lawl": { "c": "32$/100kk", "v": "25$/100kk", "qty": "100kk" }
+    }
+  },
+  "epoch": {
+    "servers": {
+      "KEZAN": { "c": "5$/100G", "v": "2.50$/100G", "qty": "100G" },
+      "Gurubashi": { "c": "5$/100G", "v": "2.50$/100G", "qty": "100G" }
+    }
+  },
+  "ascension": {
+    "servers": {
+      "Bronzebeard": { "c": "0.90$/100G", "v": "0.50$/100G", "qty": "100G" }
+    }
+  },
+  "wowRetailUS": {
+    "servers": {
+      "WoW Retail US": { "c": "4.50$/100K", "v": "3.80$/100K", "qty": "100K" }
+    }
+  },
+  "wowRetailEU": {
+    "servers": {
+      "WoW Retail EU": { "c": "4.50$/100K", "v": "3.80$/100K", "qty": "100K" }
+    }
+  },
+  "odin": {
+    "servers": {
+      "Asgard 01": { "c": "3.40$/1000M", "v": "2$/1000M", "qty": "1000M" },
+      "Asgard 02": { "c": "3.40$/1000M", "v": "2$/1000M", "qty": "1000M" },
+      "Asgard 03": { "c": "3.40$/1000M", "v": "2$/1000M", "qty": "1000M" },
+      "Asgard 04": { "c": "3.40$/1000M", "v": "2$/1000M", "qty": "1000M" },
+      "Asgard 05": { "c": "3.40$/1000M", "v": "2$/1000M", "qty": "1000M" },
+      "Asgard 06": { "c": "3.40$/1000M", "v": "2$/1000M", "qty": "1000M" },
+      "Asgard 07": { "c": "3.40$/1000M", "v": "2$/1000M", "qty": "1000M" },
+      "Asgard 08": { "c": "3.40$/1000M", "v": "2$/1000M", "qty": "1000M" },
+      "Asgard 09": { "c": "3.40$/1000M", "v": "2$/1000M", "qty": "1000M" }
+    }
+  },
+  "dofus": {
+    "servers": {
+      "Retro - Fallanster": { "c": "5$/10M", "v": "3$/10M", "qty": "10M" },
+      "Retro - Boune": { "c": "30$/10M", "v": "20$/10M", "qty": "10M" },
+      "Retro - Allisteria": { "c": "10$/10M", "v": "6$/10M", "qty": "10M" }
+    }
+  },
+  "quinfall": {
+    "servers": {
+      "Region (USD)": { "c": "11.50$/500M", "v": "7.50$/500M", "qty": "500M" },
+      "Region (EU)": { "c": "11.50$/500M", "v": "7.50$/500M", "qty": "500M" }
+    }
+  },
+  "throne": {
+    "servers": {
+      "Region Global Americas": { "c": "24$/5k", "v": "16$/5k", "qty": "5k" }
+    }
+  },
+  "torchlight": {
+    "servers": {
+      "(USD) Season Lunaria": { "c": "1$/100U", "v": "0.65$/100U", "qty": "100U" },
+      "(EU) Season Lunaria": { "c": "0.80$/100U", "v": "0.50$/100U", "qty": "100U" }
+    }
+  },
+  "poe1": {
+    "servers": {
+      "MIRAGE SEASON NUEVA": { "c": "5$/300DV", "v": "2.90$/300DV", "qty": "300DV" }
+    }
+  },
+  "poe2": {
+    "servers": {
+      "Divine Orbs": { "c": "3.80$/100DV", "v": "2.90$/100DV", "qty": "100DV" }
+    }
+  },
+  "flyff": {
+    "servers": {
+      "Mushpoie": { "c": "3.80$/200M", "v": "2.85$/200M", "qty": "200M" },
+      "Totemia": { "c": "6.90$/200M", "v": "5$/200M", "qty": "200M" },
+      "Burudeng": { "c": "4.20$/200M", "v": "3.20$/200M", "qty": "200M" }
+    }
+  },
+  "rubinot": {
+    "servers": {
+      "Rubinicoin": { "c": "17$/1k", "v": "14$/1k", "qty": "1k" }
+    }
+  },
+  "tibia": {
+    "servers": {
+      "Tibicoin": { "c": "12$/250TC", "v": "9.50$/250TC", "qty": "250TC" }
+    }
+  },
+  "streaming": {
+    "Netflix": { "1 PERFIL": "5$ (MES)", "CUENTA COMPLETA": "15$ (MES)" },
+    "Disney+": { "1 PERFIL": "3$ (MES)", "CUENTA COMPLETA": "12$ (MES)" },
+    "Prime Video": { "1 PERFIL": "3$ (MES)" },
+    "HBO": { "1 PERFIL": "3$ (MES)", "CUENTA COMPLETA": "10$ (MES)" },
+    "Crunchyroll": { "1 PERFIL": "2$ (MES)" },
+    "YouTube": { "1 PERFIL": "3$ (MES)" },
+    "Chat GPT": { "1 PERFIL": "4$ (MES)" },
+    "CapCut Pro": { "1 PERFIL": "3$ (MES)" },
+    "Paramount": { "1 PERFIL": "2.50$ (MES)" },
+    "Apple TV": { "1 PERFIL": "3$ (MES)" },
+    "Canva": { "1 MES": "1.50$", "1 AÑO": "3$" },
+    "Gemini": { "1 MES": "2.50$", "1 AÑO": "5$" }
+  },
+  "giftcards": {
+    "Battle Net Gift Card": { "10$": "13$", "20$": "26$", "30$": "39$", "40$": "52$", "50$": "65$", "100$": "130$" },
+    "Amazon Gift Card": { "10$": "13$", "20$": "26$", "30$": "39$", "40$": "52$", "50$": "65$", "100$": "130$" },
+    "Roblox Gift Card": { "10$": "13$", "20$": "26$", "30$": "39$", "40$": "52$", "50$": "65$", "100$": "130$" },
+    "PlayStation Gift Card": { "10$": "13$", "20$": "26$", "30$": "39$", "40$": "52$", "50$": "65$", "100$": "130$" },
+    "Apple Gift Card": { "10$": "13$", "20$": "26$", "30$": "39$", "40$": "52$", "50$": "65$", "100$": "130$" },
+    "Steam Gift Card": { "10$": "13$", "20$": "26$", "30$": "39$", "40$": "52$", "50$": "65$", "100$": "130$" },
+    "Xbox Gift Card": { "10$": "13$", "20$": "26$", "30$": "39$", "40$": "52$", "50$": "65$", "100$": "130$" },
+    "Valorant Gift Card": { "10$": "13$", "20$": "26$", "30$": "39$", "40$": "52$", "50$": "65$", "100$": "130$" },
+    "Garena Free Fire Gift Card": { "10$": "13$", "20$": "26$", "30$": "39$", "40$": "52$", "50$": "65$", "100$": "130$" },
+    "Google Play Gift Card": { "10$": "13$", "20$": "26$", "30$": "39$", "40$": "52$", "50$": "65$", "100$": "130$" }
+  },
+  "p2p": {
+    "ZINLI": {
+      "Zinli 1$": "1.30$", "Zinli 2$": "2.60$", "Zinli 5$": "6.50$", "Zinli 10$": "12$", "Zinli 15$": "17.25$", "Zinli 20$": "23$", "Zinli 25$": "28.75$", "Zinli 30$": "34.50$", "Zinli 40$": "46$", "Zinli 50$": "57.50$", "Zinli 100$": "115$"
+    },
+    "PAYPAL": {
+      "Paypal 10$": "12.50$", "Paypal 20$": "24$", "Paypal 50$": "60$", "Paypal 100$": "120$", "Paypal 200$": "240$", "Paypal 300$": "360$"
+    },
+    "BOLIVARES_TO_USDT": {
+      "DETALLES": "4% COMISIÓN",
+      "CONSULTAR TASA DEL DÍA": "Click para consultar"
+    },
+    "USDT_TO_BOLIVARES": {
+      "DETALLES": "4% COMISIÓN",
+      "CONSULTAR TASA DEL DÍA": "Click para consultar"
+    }
+  },
+  "wow_gt": {
+    "price": "28$"
+  }
+}
