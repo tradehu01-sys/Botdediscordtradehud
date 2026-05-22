@@ -21,7 +21,7 @@ const fs = require('fs');
 const path = require('path');
 
 /* ================= CONFIGURACIÓN ================= */
-const TOKEN = "MTQ4NzkwNzc5MDc3NjMwMzc4OA.GgJlpr.uYEKTsOSkjbsWIetorliFuDf71JWH5KDI_jjHQ";
+const TOKEN = process.env.TOKEN;
 const CLIENT_ID = "1487907790776303788";
 
 // CANALES
