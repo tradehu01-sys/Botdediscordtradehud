@@ -1,11 +1,11 @@
 {
   "tbc": {
     "servers": {
-      "Nightslayer": { "c": "14$", "v": "9$", "qty": "1k" },
-      "Dreamscythe": { "c": "14$", "v": "9$", "qty": "1k" },
+      "Nightslayer": { "c": "13$", "v": "9$", "qty": "1k" },
+      "Dreamscythe": { "c": "13$", "v": "9$", "qty": "1k" },
       "(EU) Spineshatter": { "c": "14$", "v": "9$", "qty": "1k" },
       "(EU) Thunderstrike": { "c": "14$", "v": "9$", "qty": "1k" },
-      "(EU) Soulseeker": { "c": "14$", "v": "9$", "qty": "1k" }
+      "(EU) Soulseeker": { "c": "60$", "v": "40$", "qty": "1k" }
     }
   },
   "albion": {
@@ -29,9 +29,9 @@
   },
   "warmane": {
     "servers": {
-      "Onyxia": { "c": "0.15$/100g", "v": "0.10$/100g", "qty": "100g" },
-      "Lordaeron": { "c": "0.14$/100g", "v": "0.09$/100g", "qty": "100g" },
-      "Icecrown": { "c": "0.14$/100g", "v": "0.09$/100g", "qty": "100g" }
+      "Onyxia": { "c": "0.12$/1000g", "v": "0.60$/1000g", "qty": "100g" },
+      "Lordaeron": { "c": "0.80$/1000g", "v": "0.25$/1000g", "qty": "100g" },
+      "Icecrown": { "c": "0.80$/1000g", "v": "0.25$/1000g", "qty": "100g" }
     }
   },
   "aion": {
@@ -71,8 +71,7 @@
   },
   "lawl": {
     "servers": {
-      "Lawl": { "c": "32$/100kk", "v": "25$/100kk", "qty": "100kk" }
-    }
+      "Lawl": { "c": "20$/100kk", "v": "28$/100kk", "qty": "100kk" }   
   },
   "epoch": {
     "servers": {
@@ -87,12 +86,12 @@
   },
   "wowRetailUS": {
     "servers": {
-      "WoW Retail US": { "c": "4.50$/100K", "v": "3.80$/100K", "qty": "100K" }
+      "WoW Retail US": { "c": "5$/100K", "v": "3.80$/100K", "qty": "100K" }
     }
   },
   "wowRetailEU": {
     "servers": {
-      "WoW Retail EU": { "c": "4.50$/100K", "v": "3.80$/100K", "qty": "100K" }
+      "WoW Retail EU": { "c": "5$/100K", "v": "3.80$/100K", "qty": "100K" }
     }
   },
   "odin": {

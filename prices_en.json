@@ -1,17 +1,17 @@
 {
   "tbc": {
     "servers": {
-      "Nightslayer": { "c": "14$", "v": "9$", "qty": "1k" },
-      "Dreamscythe": { "c": "14$", "v": "9$", "qty": "1k" },
+      "Nightslayer": { "c": "13$", "v": "9$", "qty": "1k" },
+      "Dreamscythe": { "c": "13$", "v": "9$", "qty": "1k" },
       "(EU) Spineshatter": { "c": "14$", "v": "9$", "qty": "1k" },
       "(EU) Thunderstrike": { "c": "14$", "v": "9$", "qty": "1k" },
-      "(EU) Soulseeker": { "c": "14$", "v": "9$", "qty": "1k" }
+      "(EU) Soulseeker": { "c": "60$", "v": "40$", "qty": "1k" }
     }
   },
   "albion": {
     "servers": {
-      "America": { "c": "26$", "v": "20$", "qty": "100M" },
-      "Europe": { "c": "26$", "v": "20$", "qty": "100M" }
+      "America": { "c": "24$", "v": "18$", "qty": "100M" },
+      "Europe": { "c": "24$", "v": "18$", "qty": "100M" }
     }
   },
   "lineage2": {
@@ -71,13 +71,13 @@
   },
   "lawl": {
     "servers": {
-      "Lawl": { "c": "32$/100kk", "v": "25$/100kk", "qty": "100kk" }
+      "Lawl": { "c": "28$/100kk", "v": "20$/100kk", "qty": "100kk" }
     }
   },
   "epoch": {
     "servers": {
-      "KEZAN": { "c": "8$/100G", "v": "4.50$/100G", "qty": "100G" },
-      "Gurubashi": { "c": "8$/100G", "v": "4.50$/100G", "qty": "100G" }
+      "KEZAN": { "c": "5$/100G", "v": "2.50$/100G", "qty": "100G" },
+      "Gurubashi": { "c": "5$/100G", "v": "2.50$/100G", "qty": "100G" }
     }
   },
   "ascension": {
@@ -87,12 +87,12 @@
   },
   "wowRetailUS": {
     "servers": {
-      "WoW Retail US": { "c": "4.50$/100K", "v": "3.80$/100K", "qty": "100K" }
+      "WoW Retail US": { "c": "5$/100K", "v": "3.80$/100K", "qty": "100K" }
     }
   },
   "wowRetailEU": {
     "servers": {
-      "WoW Retail EU": { "c": "4.50$/100K", "v": "3.80$/100K", "qty": "100K" }
+      "WoW Retail EU": { "c": "5$/100K", "v": "3.80$/100K", "qty": "100K" }
     }
   },
   "odin": {
@@ -151,7 +151,7 @@
   },
   "rubinot": {
     "servers": {
-      "Rubinicoin": { "c": "18$/1k", "v": "15$/1k", "qty": "1k" }
+      "Rubinicoin": { "c": "17$/1k", "v": "14$/1k", "qty": "1k" }
     }
   },
   "tibia": {
