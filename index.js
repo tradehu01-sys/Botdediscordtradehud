@@ -1,4 +1,3 @@
-
 const {
   Client,
   GatewayIntentBits,
@@ -235,8 +234,6 @@ async function sendTempMessage(interaction, content, seconds = 5) {
 }
 
 // ========== FUNCIONES DE REINICIO ==========
-
-// Reinicio para menú de precios
 function scheduleReset(interaction, messageId, lang) {
   if (userTimeouts.has(interaction.user.id)) clearTimeout(userTimeouts.get(interaction.user.id));
   const timeout = setTimeout(async () => {
@@ -277,7 +274,6 @@ function scheduleCategoryReset(interaction, messageId, lang) {
   categoryTimeouts.set(interaction.user.id, timeout);
 }
 
-// Reinicio para menú de tickets (vuelve al botón de abrir ticket)
 function scheduleTicketReset(interaction, messageId, lang) {
   if (ticketTimeouts.has(interaction.user.id)) clearTimeout(ticketTimeouts.get(interaction.user.id));
   const timeout = setTimeout(async () => {
@@ -502,8 +498,6 @@ async function showP2PCategory(interaction, lang, categoryName) {
 }
 
 // ========== FORMULARIOS ==========
-
-// 1. Formulario para ORO (Marketplace)
 async function showGoldForm(interaction, lang, gameName, serverName, tipo) {
   const isEN = lang === "en";
   const modal = new ModalBuilder()
@@ -555,7 +549,6 @@ async function showGoldForm(interaction, lang, gameName, serverName, tipo) {
   await interaction.showModal(modal);
 }
 
-// 2. Formulario para STREAMING
 async function showStreamingPurchaseForm(interaction, lang, serviceName) {
   const isEN = lang === "en";
   const modal = new ModalBuilder()
@@ -599,7 +592,6 @@ async function showStreamingPurchaseForm(interaction, lang, serviceName) {
   await interaction.showModal(modal);
 }
 
-// 3. Formulario para GIFT CARDS
 async function showGiftCardPurchaseForm(interaction, lang, cardName) {
   const isEN = lang === "en";
   const modal = new ModalBuilder()
@@ -643,7 +635,6 @@ async function showGiftCardPurchaseForm(interaction, lang, cardName) {
   await interaction.showModal(modal);
 }
 
-// 4. Formulario para ZINLI
 async function showZinliForm(interaction, lang) {
   const isEN = lang === "en";
   const modal = new ModalBuilder()
@@ -679,7 +670,6 @@ async function showZinliForm(interaction, lang) {
   await interaction.showModal(modal);
 }
 
-// 5. Formulario para PAYPAL
 async function showPayPalForm(interaction, lang) {
   const isEN = lang === "en";
   const modal = new ModalBuilder()
@@ -715,7 +705,6 @@ async function showPayPalForm(interaction, lang) {
   await interaction.showModal(modal);
 }
 
-// 6. Formulario para BOLÍVARES → USDT
 async function showBolivaresToUSDTForm(interaction, lang) {
   const isEN = lang === "en";
   const modal = new ModalBuilder()
@@ -751,7 +740,6 @@ async function showBolivaresToUSDTForm(interaction, lang) {
   await interaction.showModal(modal);
 }
 
-// 7. Formulario para USDT → BOLÍVARES
 async function showUSDTToBolivaresForm(interaction, lang) {
   const isEN = lang === "en";
   const modal = new ModalBuilder()
@@ -787,7 +775,6 @@ async function showUSDTToBolivaresForm(interaction, lang) {
   await interaction.showModal(modal);
 }
 
-// 8. Formulario para WOW GAME TIME
 async function showWowGTForm(interaction, lang) {
   const isEN = lang === "en";
   const modal = new ModalBuilder()
@@ -823,7 +810,6 @@ async function showWowGTForm(interaction, lang) {
   await interaction.showModal(modal);
 }
 
-// 9. Formulario para OTRO
 async function showOtherForm(interaction, lang) {
   const isEN = lang === "en";
   const modal = new ModalBuilder()
@@ -859,7 +845,6 @@ async function showOtherForm(interaction, lang) {
   await interaction.showModal(modal);
 }
 
-// 10. Formulario para LEVELING (Boosting)
 async function showLevelingForm(interaction, lang) {
   const isEN = lang === "en";
   const modal = new ModalBuilder()
@@ -911,7 +896,6 @@ async function showLevelingForm(interaction, lang) {
   await interaction.showModal(modal);
 }
 
-// 11. Formulario para PROFESSIONS (Boosting)
 async function showProfessionsForm(interaction, lang) {
   const isEN = lang === "en";
   const modal = new ModalBuilder()
@@ -1110,20 +1094,19 @@ client.on(Events.InteractionCreate, async (interaction) => {
     return;
   }
 
-  // ========== ABRIR TICKET (BOTÓN) - MISMO MENSAJE, CON REINICIO ==========
+  // ========== ABRIR TICKET ==========
   if (interaction.isButton() && interaction.customId === `open_ticket_${lang}`) {
     const existingTicket = await hasOpenTicket(interaction.guild, interaction.user.username);
     if (existingTicket) {
       await interaction.reply({ content: isEN ? `❌ You have a ticket: ${existingTicket}` : `❌ Ya tienes un ticket: ${existingTicket}`, flags: MessageFlags.Ephemeral });
       return;
     }
-    // EDITAR el mensaje original (no crear uno nuevo)
     await interaction.update({ embeds: [getTicketEmbed(lang)], components: [getTicketMainMenu(lang)] });
     scheduleTicketReset(interaction, interaction.message.id, lang);
     return;
   }
 
-  // ========== MENÚ PRINCIPAL DE PRECIOS (GRANDE) - CON REINICIO ==========
+  // ========== MENÚ PRINCIPAL DE PRECIOS ==========
   if (interaction.isStringSelectMenu() && interaction.customId === `main_menu_${lang}`) {
     const key = interaction.values[0];
     const btns = lang === "en" ? buttonsEN : buttonsES;
@@ -1203,12 +1186,11 @@ client.on(Events.InteractionCreate, async (interaction) => {
     }
   }
 
-  // ========== MENÚ PRINCIPAL DE TICKETS - CON REINICIO ==========
+  // ========== MENÚ PRINCIPAL DE TICKETS ==========
   if (interaction.isStringSelectMenu() && interaction.customId === `ticket_main_menu_${lang}`) {
     const key = interaction.values[0];
     const btns = lang === "en" ? buttonsEN : buttonsES;
     
-    // Cancelar el timeout de ticket
     if (ticketTimeouts.has(interaction.user.id)) {
       clearTimeout(ticketTimeouts.get(interaction.user.id));
       ticketTimeouts.delete(interaction.user.id);
@@ -1293,7 +1275,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
     }
   }
 
-  // ========== MARKETPLACE MENU (SELECCIÓN DE JUEGOS) ==========
+  // ========== MARKETPLACE MENU ==========
   if (interaction.isStringSelectMenu() && interaction.customId === `marketplace_menu_${lang}`) {
     const key = interaction.values[0];
     const data = lang === "en" ? dataEN : dataES;
@@ -1434,7 +1416,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
     }
   }
 
-  // ========== SELECCIÓN DE SERVIDOR (ORO) ==========
+  // ========== SELECCIÓN DE SERVIDOR ==========
   if (interaction.isStringSelectMenu() && interaction.customId.startsWith(`select_`)) {
     const parts = interaction.customId.split("_");
     const gameKey = parts[1];
@@ -1520,9 +1502,8 @@ client.on(Events.InteractionCreate, async (interaction) => {
     return;
   }
 
-  // ========== BOTONES COMPRA/VENTA (ORO/MARKETPLACE) ==========
+  // ========== BOTONES COMPRA/VENTA (ORO) ==========
   if (interaction.isButton() && (interaction.customId.startsWith("buy_") || interaction.customId.startsWith("sell_") || interaction.customId.startsWith("ticket_buy_") || interaction.customId.startsWith("ticket_sell_"))) {
-    // Verificar que NO sea un botón de streaming, giftcard, zinli, paypal o bolivares
     if (!interaction.customId.includes("streaming") && !interaction.customId.includes("giftcard") && !interaction.customId.includes("zinli") && !interaction.customId.includes("paypal") && !interaction.customId.includes("bolivares") && !interaction.customId.includes("usdt") && !interaction.customId.includes("wowgt")) {
       const parts = interaction.customId.split("_");
       const isTicketButton = parts[0] === "ticket";
@@ -1566,8 +1547,6 @@ client.on(Events.InteractionCreate, async (interaction) => {
     cancelCategoryReset(interaction.user.id);
     cancelTicketReset(interaction.user.id);
     await interaction.update({ embeds: [getTicketEmbed(lang)], components: [getTicketButton(lang)] });
-    // Programar nuevo reinicio después de volver al botón
-    scheduleTicketReset(interaction, interaction.message.id, lang);
     return;
   }
 
@@ -1626,7 +1605,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
 
   // ========== MODALES ==========
   
-  // Modal Oro (Gold)
+  // Modal Oro
   if (interaction.type === 5 && interaction.customId && interaction.customId === `gold_form_${lang}`) {
     try {
       await deleteMenuMessage(interaction.user.id);
@@ -2046,7 +2025,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
     return;
   }
 
-  // Modal Leveling (Boosting)
+  // Modal Leveling
   if (interaction.type === 5 && interaction.customId && interaction.customId === `leveling_form_${lang}`) {
     try {
       await deleteMenuMessage(interaction.user.id);
@@ -2092,7 +2071,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
     return;
   }
 
-  // Modal Professions (Boosting)
+  // Modal Professions
   if (interaction.type === 5 && interaction.customId && interaction.customId === `professions_form_${lang}`) {
     try {
       await deleteMenuMessage(interaction.user.id);
@@ -2139,4 +2118,18 @@ client.on(Events.InteractionCreate, async (interaction) => {
   }
 });
 
+// ========== SERVIDOR WEB FALSO PARA MANTENER EL BOT ACTIVO EN RENDER ==========
+const express = require('express');
+const app = express();
+const port = process.env.PORT || 10000;
+
+app.get('/', (req, res) => {
+  res.send('¡El bot TradeHud está funcionando correctamente!');
+});
+
+app.listen(port, () => {
+  console.log(`✅ Servidor web falso escuchando en el puerto ${port}`);
+});
+
+// ========== INICIAR EL BOT ==========
 client.login(TOKEN);
