@@ -415,7 +415,7 @@ async function showStreamingService(interaction, lang, serviceName) {
     .setDescription(`${planList}\n\n${isEN ? "Click WE SELL to purchase" : "Haz clic en VENDEMOS para comprar"}\n${isEN ? METODOS_RESUMIDOS_EN : METODOS_RESUMIDOS_ES}`)
     .setColor(0x5865F2);
   
-  await interaction.update({ 
+  await interaction.editReply({ 
     embeds: [embed], 
     components: [new ActionRowBuilder().addComponents(
       new ButtonBuilder().setCustomId(`buy_streaming_${serviceName}_${lang}`).setLabel(isEN ? "🟢 WE SELL" : "🟢 VENDEMOS").setStyle(ButtonStyle.Success),
@@ -436,7 +436,7 @@ async function showGiftCard(interaction, lang, cardName) {
     .setDescription(`${amountList}\n\n${isEN ? "Click WE SELL to purchase" : "Haz clic en VENDEMOS para comprar"}\n${isEN ? METODOS_RESUMIDOS_EN : METODOS_RESUMIDOS_ES}`)
     .setColor(0x5865F2);
   
-  await interaction.update({ 
+  await interaction.editReply({ 
     embeds: [embed], 
     components: [new ActionRowBuilder().addComponents(
       new ButtonBuilder().setCustomId(`buy_giftcard_${cardName}_${lang}`).setLabel(isEN ? "🟢 WE SELL" : "🟢 VENDEMOS").setStyle(ButtonStyle.Success),
@@ -488,7 +488,7 @@ async function showP2PCategory(interaction, lang, categoryName) {
     buyCustomId = `buy_p2p_${categoryKey.toLowerCase()}_${lang}`;
   }
   
-  await interaction.update({ 
+  await interaction.editReply({ 
     embeds: [embed], 
     components: [new ActionRowBuilder().addComponents(
       new ButtonBuilder().setCustomId(buyCustomId).setLabel(isEN ? "🟢 WE SELL" : "🟢 VENDEMOS").setStyle(ButtonStyle.Success),
@@ -1035,11 +1035,40 @@ async function registerCommands() {
   } catch (error) { console.error("Error al registrar comandos:", error); }
 }
 
+// ========== KEEP ALIVE SYSTEM ==========
+let keepAliveInterval;
+function startKeepAlive() {
+  keepAliveInterval = setInterval(() => {
+    console.log(`💓 Keep-alive ping - ${new Date().toISOString()}`);
+    if (client.user) {
+      client.user.setPresence({ activities: [{ name: "TradeHub MMORPG", type: 3 }] });
+    }
+  }, 240000);
+}
+
+function stopKeepAlive() {
+  if (keepAliveInterval) clearInterval(keepAliveInterval);
+}
+
 client.once(Events.ClientReady, async () => {
   console.log(`🚀 Bot conectado como ${client.user.tag}`);
   await registerCommands();
   console.log("✅ Bot listo");
   console.log("📌 Comandos: /menu_es | /menu_en | /ticket_es | /ticket_en | /redes");
+  
+  startKeepAlive();
+  
+  client.on(Events.Error, (error) => {
+    console.error("❌ Error del cliente:", error);
+  });
+  
+  client.on(Events.Disconnect, (event) => {
+    console.log(`⚠️ Desconectado: ${event.reason}`);
+  });
+  
+  client.on(Events.Reconnecting, () => {
+    console.log("🔄 Reconectando...");
+  });
 });
 
 client.on(Events.InteractionCreate, async (interaction) => {
@@ -1051,57 +1080,67 @@ client.on(Events.InteractionCreate, async (interaction) => {
 
   // ========== COMANDOS SLASH ==========
   if (interaction.isCommand()) {
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+    
     if (!interaction.member.permissions.has(PermissionsBitField.Flags.Administrator)) {
-      await interaction.reply({ content: isEN ? "❌ No permission" : "❌ Sin permisos", flags: MessageFlags.Ephemeral });
+      await interaction.editReply({ content: isEN ? "❌ No permission" : "❌ Sin permisos" });
       return;
     }
+    
     const channel = await client.channels.fetch(interaction.channelId);
     if (interaction.commandName === "menu_es") {
       await channel.send({ embeds: [getMainEmbed("es")], components: [getMainMenu("es")] });
-      await interaction.reply({ content: "✅ Menú enviado", flags: MessageFlags.Ephemeral });
+      await interaction.editReply({ content: "✅ Menú enviado" });
     }
     if (interaction.commandName === "menu_en") {
       await channel.send({ embeds: [getMainEmbed("en")], components: [getMainMenu("en")] });
-      await interaction.reply({ content: "✅ Menu sent", flags: MessageFlags.Ephemeral });
+      await interaction.editReply({ content: "✅ Menu sent" });
     }
     if (interaction.commandName === "ticket_es") {
       const ticketChannel = await client.channels.fetch(ID_CANAL_TICKET_ES);
       const msg = await ticketChannel.send({ embeds: [getTicketEmbed("es")], components: [getTicketButton("es")] });
       originalTicketMessageES = msg;
-      await interaction.reply({ content: "✅ Ticket enviado", flags: MessageFlags.Ephemeral });
+      await interaction.editReply({ content: "✅ Ticket enviado" });
     }
     if (interaction.commandName === "ticket_en") {
       const ticketChannel = await client.channels.fetch(ID_CANAL_TICKET_EN);
       const msg = await ticketChannel.send({ embeds: [getTicketEmbed("en")], components: [getTicketButton("en")] });
       originalTicketMessageEN = msg;
-      await interaction.reply({ content: "✅ Ticket sent", flags: MessageFlags.Ephemeral });
+      await interaction.editReply({ content: "✅ Ticket sent" });
     }
     if (interaction.commandName === "redes") {
       const ch1 = await client.channels.fetch(ID_CANAL_REDES_1);
       const ch2 = await client.channels.fetch(ID_CANAL_REDES_2);
       if (ch1) await ch1.send({ embeds: [getRedesEmbed("es")], components: [getRedesButtons("es")] });
       if (ch2) await ch2.send({ embeds: [getRedesEmbed("en")], components: [getRedesButtons("en")] });
-      await interaction.reply({ content: "✅ Redes enviadas", flags: MessageFlags.Ephemeral });
+      await interaction.editReply({ content: "✅ Redes enviadas" });
     }
     if (interaction.commandName === "reload_es") {
-      if (reloadData("es")) await interaction.reply({ content: "✅ Recargado", flags: MessageFlags.Ephemeral });
-      else await interaction.reply({ content: "❌ Error", flags: MessageFlags.Ephemeral });
+      if (reloadData("es")) await interaction.editReply({ content: "✅ Recargado" });
+      else await interaction.editReply({ content: "❌ Error" });
     }
     if (interaction.commandName === "reload_en") {
-      if (reloadData("en")) await interaction.reply({ content: "✅ Reloaded", flags: MessageFlags.Ephemeral });
-      else await interaction.reply({ content: "❌ Error", flags: MessageFlags.Ephemeral });
+      if (reloadData("en")) await interaction.editReply({ content: "✅ Reloaded" });
+      else await interaction.editReply({ content: "❌ Error" });
     }
     return;
+  }
+
+  // ========== DEFER INMEDIATO PARA BOTONES Y MENÚS ==========
+  if (interaction.isButton() || interaction.isStringSelectMenu()) {
+    if (!interaction.deferred && !interaction.replied) {
+      await interaction.deferUpdate().catch(() => {});
+    }
   }
 
   // ========== ABRIR TICKET ==========
   if (interaction.isButton() && interaction.customId === `open_ticket_${lang}`) {
     const existingTicket = await hasOpenTicket(interaction.guild, interaction.user.username);
     if (existingTicket) {
-      await interaction.reply({ content: isEN ? `❌ You have a ticket: ${existingTicket}` : `❌ Ya tienes un ticket: ${existingTicket}`, flags: MessageFlags.Ephemeral });
+      await interaction.followUp({ content: isEN ? `❌ You have a ticket: ${existingTicket}` : `❌ Ya tienes un ticket: ${existingTicket}`, flags: MessageFlags.Ephemeral });
       return;
     }
-    await interaction.update({ embeds: [getTicketEmbed(lang)], components: [getTicketMainMenu(lang)] });
+    await interaction.editReply({ embeds: [getTicketEmbed(lang)], components: [getTicketMainMenu(lang)] });
     scheduleTicketReset(interaction, interaction.message.id, lang);
     return;
   }
@@ -1113,7 +1152,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
     cancelCategoryReset(interaction.user.id);
 
     if (key === "marketplace") {
-      await interaction.update({ 
+      await interaction.editReply({ 
         embeds: [new EmbedBuilder().setTitle(isEN ? "🛒 MARKETPLACE" : "🛒 MARKETPLACE").setDescription(isEN ? "Select a game to see its rates." : "Selecciona un juego para ver sus tasas.").setColor(0x000000)], 
         components: [getMarketplaceMenu(lang), new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId(`back_${lang}`).setLabel(isEN ? "⬅️ BACK" : "⬅️ VOLVER").setStyle(ButtonStyle.Secondary))] 
       });
@@ -1123,7 +1162,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
 
     if (key === "boosting") {
       if (btns.boosting?.active === false) {
-        await interaction.reply({ content: isEN ? "❌ Boosting service is currently unavailable" : "❌ Servicio de boosting no disponible", flags: MessageFlags.Ephemeral });
+        await interaction.followUp({ content: isEN ? "❌ Boosting service is currently unavailable" : "❌ Servicio de boosting no disponible", flags: MessageFlags.Ephemeral });
         return;
       }
       const boostMenu = new ActionRowBuilder().addComponents(
@@ -1139,13 +1178,13 @@ client.on(Events.InteractionCreate, async (interaction) => {
         .setTitle(isEN ? "🚀 BOOSTING SERVICE" : "🚀 SERVICIO DE BOOSTING")
         .setDescription(isEN ? "Select the type of boost you need:" : "Selecciona el tipo de boost que necesitas:")
         .setColor(0x00ff00);
-      await interaction.update({ embeds: [embed], components: [boostMenu, new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId(`back_${lang}`).setLabel(isEN ? "⬅️ BACK" : "⬅️ VOLVER").setStyle(ButtonStyle.Secondary))] });
+      await interaction.editReply({ embeds: [embed], components: [boostMenu, new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId(`back_${lang}`).setLabel(isEN ? "⬅️ BACK" : "⬅️ VOLVER").setStyle(ButtonStyle.Secondary))] });
       scheduleReset(interaction, interaction.message.id, lang);
       return;
     }
 
     if (key === "giftcards") {
-      await interaction.update({ 
+      await interaction.editReply({ 
         embeds: [new EmbedBuilder().setTitle(isEN ? "🎁 GIFT CARDS" : "🎁 TARJETAS").setDescription(isEN ? "Select a gift card:" : "Selecciona una tarjeta:").setColor(0x000000)], 
         components: [getGiftCardsMenu(lang), new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId(`back_${lang}`).setLabel(isEN ? "⬅️ BACK" : "⬅️ VOLVER").setStyle(ButtonStyle.Secondary))] 
       });
@@ -1154,7 +1193,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
     }
 
     if (key === "p2p") {
-      await interaction.update({ 
+      await interaction.editReply({ 
         embeds: [new EmbedBuilder().setTitle(isEN ? "💳 P2P EXCHANGE" : "💳 CAMBIO P2P").setDescription(isEN ? "Select a method:" : "Selecciona un método:").setColor(0x000000)], 
         components: [getP2PCategoriesMenu(lang), new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId(`back_${lang}`).setLabel(isEN ? "⬅️ BACK" : "⬅️ VOLVER").setStyle(ButtonStyle.Secondary))] 
       });
@@ -1163,7 +1202,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
     }
 
     if (key === "streaming") {
-      await interaction.update({ 
+      await interaction.editReply({ 
         embeds: [new EmbedBuilder().setTitle(isEN ? "📺 STREAMING SERVICES" : "📺 SERVICIOS DE STREAMING").setDescription(isEN ? "Select a service:" : "Selecciona un servicio:").setColor(0x000000)], 
         components: [getStreamingServicesMenu(lang), new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId(`back_${lang}`).setLabel(isEN ? "⬅️ BACK" : "⬅️ VOLVER").setStyle(ButtonStyle.Secondary))] 
       });
@@ -1174,7 +1213,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
     if (key === "wow_gt") {
       const data = lang === "en" ? dataEN : dataES;
       const embed = new EmbedBuilder().setTitle(isEN ? "🕒 GAME TIME" : "🕒 TIEMPO JUEGO").setDescription(`**${isEN ? "Price" : "Precio"}:** ${data.wow_gt.price}\n${isEN ? METODOS_RESUMIDOS_EN : METODOS_RESUMIDOS_ES}`).setColor(0x000000);
-      await interaction.update({ 
+      await interaction.editReply({ 
         embeds: [embed], 
         components: [new ActionRowBuilder().addComponents(
           new ButtonBuilder().setCustomId(`buy_wowgt_${lang}`).setLabel(isEN ? "🟢 WE SELL" : "🟢 VENDEMOS").setStyle(ButtonStyle.Success).setDisabled(btns.wow_gt?.buy === false),
@@ -1197,7 +1236,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
     }
 
     if (key === "ticket_marketplace") {
-      await interaction.update({ 
+      await interaction.editReply({ 
         embeds: [new EmbedBuilder().setTitle(isEN ? "🛒 MARKETPLACE" : "🛒 MARKETPLACE").setDescription(isEN ? "Select a game to continue:" : "Selecciona un juego para continuar:").setColor(0x5865F2)], 
         components: [getMarketplaceMenu(lang), new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId(`back_ticket_${lang}`).setLabel(isEN ? "⬅️ BACK" : "⬅️ VOLVER").setStyle(ButtonStyle.Secondary))] 
       });
@@ -1207,7 +1246,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
 
     if (key === "ticket_boosting") {
       if (btns.boosting?.active === false) {
-        await interaction.reply({ content: isEN ? "❌ Boosting service is currently unavailable" : "❌ Servicio de boosting no disponible", flags: MessageFlags.Ephemeral });
+        await interaction.followUp({ content: isEN ? "❌ Boosting service is currently unavailable" : "❌ Servicio de boosting no disponible", flags: MessageFlags.Ephemeral });
         return;
       }
       const boostMenu = new ActionRowBuilder().addComponents(
@@ -1223,13 +1262,13 @@ client.on(Events.InteractionCreate, async (interaction) => {
         .setTitle(isEN ? "🚀 BOOSTING SERVICE" : "🚀 SERVICIO DE BOOSTING")
         .setDescription(isEN ? "Select the type of boost you need:" : "Selecciona el tipo de boost que necesitas:")
         .setColor(0x00ff00);
-      await interaction.update({ embeds: [embed], components: [boostMenu, new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId(`back_ticket_${lang}`).setLabel(isEN ? "⬅️ BACK" : "⬅️ VOLVER").setStyle(ButtonStyle.Secondary))] });
+      await interaction.editReply({ embeds: [embed], components: [boostMenu, new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId(`back_ticket_${lang}`).setLabel(isEN ? "⬅️ BACK" : "⬅️ VOLVER").setStyle(ButtonStyle.Secondary))] });
       scheduleTicketReset(interaction, interaction.message.id, lang);
       return;
     }
 
     if (key === "ticket_giftcards") {
-      await interaction.update({ 
+      await interaction.editReply({ 
         embeds: [new EmbedBuilder().setTitle(isEN ? "🎁 GIFT CARDS" : "🎁 TARJETAS").setDescription(isEN ? "Select a gift card:" : "Selecciona una tarjeta:").setColor(0x5865F2)], 
         components: [getGiftCardsMenu(lang), new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId(`back_ticket_${lang}`).setLabel(isEN ? "⬅️ BACK" : "⬅️ VOLVER").setStyle(ButtonStyle.Secondary))] 
       });
@@ -1238,7 +1277,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
     }
 
     if (key === "ticket_p2p") {
-      await interaction.update({ 
+      await interaction.editReply({ 
         embeds: [new EmbedBuilder().setTitle(isEN ? "💳 P2P EXCHANGE" : "💳 CAMBIO P2P").setDescription(isEN ? "Select a method:" : "Selecciona un método:").setColor(0x5865F2)], 
         components: [getP2PCategoriesMenu(lang), new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId(`back_ticket_${lang}`).setLabel(isEN ? "⬅️ BACK" : "⬅️ VOLVER").setStyle(ButtonStyle.Secondary))] 
       });
@@ -1247,7 +1286,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
     }
 
     if (key === "ticket_streaming") {
-      await interaction.update({ 
+      await interaction.editReply({ 
         embeds: [new EmbedBuilder().setTitle(isEN ? "📺 STREAMING SERVICES" : "📺 SERVICIOS DE STREAMING").setDescription(isEN ? "Select a service:" : "Selecciona un servicio:").setColor(0x5865F2)], 
         components: [getStreamingServicesMenu(lang), new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId(`back_ticket_${lang}`).setLabel(isEN ? "⬅️ BACK" : "⬅️ VOLVER").setStyle(ButtonStyle.Secondary))] 
       });
@@ -1258,7 +1297,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
     if (key === "ticket_wow_gt") {
       const data = lang === "en" ? dataEN : dataES;
       const embed = new EmbedBuilder().setTitle(isEN ? "🕒 GAME TIME" : "🕒 TIEMPO JUEGO").setDescription(`**${isEN ? "Price" : "Precio"}:** ${data.wow_gt.price}\n${isEN ? METODOS_RESUMIDOS_EN : METODOS_RESUMIDOS_ES}`).setColor(0x5865F2);
-      await interaction.update({ 
+      await interaction.editReply({ 
         embeds: [embed], 
         components: [new ActionRowBuilder().addComponents(
           new ButtonBuilder().setCustomId(`buy_wowgt_${lang}`).setLabel(isEN ? "🟢 WE SELL" : "🟢 VENDEMOS").setStyle(ButtonStyle.Success).setDisabled(btns.wow_gt?.buy === false),
@@ -1290,7 +1329,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
         { label: "OSRS", value: "osrs", emoji: "🎮" },
         { label: "Lawl", value: "lawl", emoji: "🐺" }
       ], `sub_${lang}`, isEN ? "--- SELECT GAME ---" : "--- SELECCIONA JUEGO ---", lang);
-      await interaction.update({ embeds: [new EmbedBuilder().setTitle(isEN ? "🎮 RPG GAMES" : "🎮 JUEGOS RPG").setColor(embedColor)], components: [sub, new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId(backButtonId).setLabel(isEN ? "⬅️ BACK" : "⬅️ VOLVER").setStyle(ButtonStyle.Secondary))] });
+      await interaction.editReply({ embeds: [new EmbedBuilder().setTitle(isEN ? "🎮 RPG GAMES" : "🎮 JUEGOS RPG").setColor(embedColor)], components: [sub, new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId(backButtonId).setLabel(isEN ? "⬅️ BACK" : "⬅️ VOLVER").setStyle(ButtonStyle.Secondary))] });
       if (!isTicket) scheduleCategoryReset(interaction, interaction.message.id, lang);
       return;
     }
@@ -1299,7 +1338,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
         { label: "Project Epoch", value: "epoch", emoji: "🌍" },
         { label: "Ascensión", value: "ascension", emoji: "⚡" }
       ], `sub_${lang}`, isEN ? "--- SELECT GAME ---" : "--- SELECCIONA JUEGO ---", lang);
-      await interaction.update({ embeds: [new EmbedBuilder().setTitle(isEN ? "🌍 WOW PROJECTS" : "🌍 PROYECTOS WOW").setColor(embedColor)], components: [sub, new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId(backButtonId).setLabel(isEN ? "⬅️ BACK" : "⬅️ VOLVER").setStyle(ButtonStyle.Secondary))] });
+      await interaction.editReply({ embeds: [new EmbedBuilder().setTitle(isEN ? "🌍 WOW PROJECTS" : "🌍 PROYECTOS WOW").setColor(embedColor)], components: [sub, new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId(backButtonId).setLabel(isEN ? "⬅️ BACK" : "⬅️ VOLVER").setStyle(ButtonStyle.Secondary))] });
       if (!isTicket) scheduleCategoryReset(interaction, interaction.message.id, lang);
       return;
     }
@@ -1308,7 +1347,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
         { label: "WoW Retail US", value: "wowRetailUS", emoji: "🇺🇸" },
         { label: "WoW Retail EU", value: "wowRetailEU", emoji: "🇪🇺" }
       ], `sub_${lang}`, isEN ? "--- SELECT REGION ---" : "--- SELECCIONA REGIÓN ---", lang);
-      await interaction.update({ embeds: [new EmbedBuilder().setTitle("🇺🇸 WOW RETAIL").setColor(embedColor)], components: [sub, new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId(backButtonId).setLabel(isEN ? "⬅️ BACK" : "⬅️ VOLVER").setStyle(ButtonStyle.Secondary))] });
+      await interaction.editReply({ embeds: [new EmbedBuilder().setTitle("🇺🇸 WOW RETAIL").setColor(embedColor)], components: [sub, new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId(backButtonId).setLabel(isEN ? "⬅️ BACK" : "⬅️ VOLVER").setStyle(ButtonStyle.Secondary))] });
       if (!isTicket) scheduleCategoryReset(interaction, interaction.message.id, lang);
       return;
     }
@@ -1318,7 +1357,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
         { label: "Dofus", value: "dofus", emoji: "🐉" },
         { label: "Quinfall", value: "quinfall", emoji: "🏰" }
       ], `sub_${lang}`, isEN ? "--- SELECT GAME ---" : "--- SELECCIONA JUEGO ---", lang);
-      await interaction.update({ embeds: [new EmbedBuilder().setTitle(isEN ? "⚡ MMORPG GAMES" : "⚡ JUEGOS MMORPG").setColor(embedColor)], components: [sub, new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId(backButtonId).setLabel(isEN ? "⬅️ BACK" : "⬅️ VOLVER").setStyle(ButtonStyle.Secondary))] });
+      await interaction.editReply({ embeds: [new EmbedBuilder().setTitle(isEN ? "⚡ MMORPG GAMES" : "⚡ JUEGOS MMORPG").setColor(embedColor)], components: [sub, new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId(backButtonId).setLabel(isEN ? "⬅️ BACK" : "⬅️ VOLVER").setStyle(ButtonStyle.Secondary))] });
       if (!isTicket) scheduleCategoryReset(interaction, interaction.message.id, lang);
       return;
     }
@@ -1329,7 +1368,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
         { label: "PoE 1", value: "poe1", emoji: "🌀" },
         { label: "PoE 2", value: "poe2", emoji: "🌀" }
       ], `sub_${lang}`, isEN ? "--- SELECT GAME ---" : "--- SELECCIONA JUEGO ---", lang);
-      await interaction.update({ embeds: [new EmbedBuilder().setTitle(isEN ? "👑 ACTION RPG" : "👑 ACTION RPG").setColor(embedColor)], components: [sub, new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId(backButtonId).setLabel(isEN ? "⬅️ BACK" : "⬅️ VOLVER").setStyle(ButtonStyle.Secondary))] });
+      await interaction.editReply({ embeds: [new EmbedBuilder().setTitle(isEN ? "👑 ACTION RPG" : "👑 ACTION RPG").setColor(embedColor)], components: [sub, new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId(backButtonId).setLabel(isEN ? "⬅️ BACK" : "⬅️ VOLVER").setStyle(ButtonStyle.Secondary))] });
       if (!isTicket) scheduleCategoryReset(interaction, interaction.message.id, lang);
       return;
     }
@@ -1339,7 +1378,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
         { label: "Rubinot", value: "rubinot", emoji: "💰" },
         { label: "Tibia", value: "tibia", emoji: "⚔️" }
       ], `sub_${lang}`, isEN ? "--- SELECT GAME ---" : "--- SELECCIONA JUEGO ---", lang);
-      await interaction.update({ embeds: [new EmbedBuilder().setTitle(isEN ? "🪽 OTHER MMOS" : "🪽 OTROS MMOS").setColor(embedColor)], components: [sub, new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId(backButtonId).setLabel(isEN ? "⬅️ BACK" : "⬅️ VOLVER").setStyle(ButtonStyle.Secondary))] });
+      await interaction.editReply({ embeds: [new EmbedBuilder().setTitle(isEN ? "🪽 OTHER MMOS" : "🪽 OTROS MMOS").setColor(embedColor)], components: [sub, new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId(backButtonId).setLabel(isEN ? "⬅️ BACK" : "⬅️ VOLVER").setStyle(ButtonStyle.Secondary))] });
       if (!isTicket) scheduleCategoryReset(interaction, interaction.message.id, lang);
       return;
     }
@@ -1347,7 +1386,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
     const game = data[key];
     if (game && game.servers) {
       const serverMenu = new ActionRowBuilder().addComponents(new StringSelectMenuBuilder().setCustomId(`select_${key}_${lang}`).setPlaceholder(isEN ? "--- SELECT SERVER ---" : "--- SELECCIONA SERVIDOR ---").addOptions(game.servers.map(s => ({ label: s.label, value: s.value }))));
-      await interaction.update({ embeds: [new EmbedBuilder().setTitle(game.title).setDescription(isEN ? "Select your server." : "Selecciona tu servidor.").setColor(embedColor)], components: [serverMenu, new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId(backButtonId).setLabel(isEN ? "⬅️ BACK" : "⬅️ VOLVER").setStyle(ButtonStyle.Secondary))] });
+      await interaction.editReply({ embeds: [new EmbedBuilder().setTitle(game.title).setDescription(isEN ? "Select your server." : "Selecciona tu servidor.").setColor(embedColor)], components: [serverMenu, new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId(backButtonId).setLabel(isEN ? "⬅️ BACK" : "⬅️ VOLVER").setStyle(ButtonStyle.Secondary))] });
       if (!isTicket) scheduleReset(interaction, interaction.message.id, lang);
       return;
     }
@@ -1410,7 +1449,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
     
     if (game && game.servers) {
       const serverMenu = new ActionRowBuilder().addComponents(new StringSelectMenuBuilder().setCustomId(`select_${selectedValue}_${lang}`).setPlaceholder(isEN ? "--- SELECT SERVER ---" : "--- SELECCIONA SERVIDOR ---").addOptions(game.servers.map(s => ({ label: s.label, value: s.value }))));
-      await interaction.update({ embeds: [new EmbedBuilder().setTitle(game.title).setDescription(isEN ? "Select your server." : "Selecciona tu servidor.").setColor(embedColor)], components: [serverMenu, new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId(backButtonId).setLabel(isEN ? "⬅️ BACK" : "⬅️ VOLVER").setStyle(ButtonStyle.Secondary))] });
+      await interaction.editReply({ embeds: [new EmbedBuilder().setTitle(game.title).setDescription(isEN ? "Select your server." : "Selecciona tu servidor.").setColor(embedColor)], components: [serverMenu, new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId(backButtonId).setLabel(isEN ? "⬅️ BACK" : "⬅️ VOLVER").setStyle(ButtonStyle.Secondary))] });
       if (!isTicket) scheduleReset(interaction, interaction.message.id, lang);
       return;
     }
@@ -1433,7 +1472,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
     const buttonBuyId = isTicket ? `ticket_buy_${gameKey}_${server.label}_${lang}` : `buy_${gameKey}_${server.label}_${lang}`;
     const buttonSellId = isTicket ? `ticket_sell_${gameKey}_${server.label}_${lang}` : `sell_${gameKey}_${server.label}_${lang}`;
     
-    await interaction.update({ embeds: [embed], components: [new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId(buttonBuyId).setLabel(buyActive ? (isEN ? "🟢 WE SELL" : "🟢 VENDEMOS") : (isEN ? "🔴 UNAVAILABLE" : "🔴 NO DISPONIBLE")).setStyle(buyActive ? ButtonStyle.Success : ButtonStyle.Secondary).setDisabled(!buyActive), new ButtonBuilder().setCustomId(buttonSellId).setLabel(sellActive ? (isEN ? "🔴 WE BUY" : "🔴 COMPRAMOS") : (isEN ? "⚫ UNAVAILABLE" : "⚫ NO DISPONIBLE")).setStyle(sellActive ? ButtonStyle.Danger : ButtonStyle.Secondary).setDisabled(!sellActive), new ButtonBuilder().setCustomId(backButtonId).setLabel(isEN ? "⬅️ BACK" : "⬅️ VOLVER").setStyle(ButtonStyle.Secondary))] });
+    await interaction.editReply({ embeds: [embed], components: [new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId(buttonBuyId).setLabel(buyActive ? (isEN ? "🟢 WE SELL" : "🟢 VENDEMOS") : (isEN ? "🔴 UNAVAILABLE" : "🔴 NO DISPONIBLE")).setStyle(buyActive ? ButtonStyle.Success : ButtonStyle.Secondary).setDisabled(!buyActive), new ButtonBuilder().setCustomId(buttonSellId).setLabel(sellActive ? (isEN ? "🔴 WE BUY" : "🔴 COMPRAMOS") : (isEN ? "⚫ UNAVAILABLE" : "⚫ NO DISPONIBLE")).setStyle(sellActive ? ButtonStyle.Danger : ButtonStyle.Secondary).setDisabled(!sellActive), new ButtonBuilder().setCustomId(backButtonId).setLabel(isEN ? "⬅️ BACK" : "⬅️ VOLVER").setStyle(ButtonStyle.Secondary))] });
     if (!isTicket) scheduleReset(interaction, interaction.message.id, lang);
     return;
   }
@@ -1444,7 +1483,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
     const serviceName = parts.slice(2).join("_").replace(`_${lang}`, "").replace(/_/g, ' ');
     const btns = lang === "en" ? buttonsEN : buttonsES;
     if (btns.streaming?.buy === false) {
-      await interaction.reply({ content: isEN ? "❌ Service not available" : "❌ Servicio no disponible", flags: MessageFlags.Ephemeral });
+      await interaction.followUp({ content: isEN ? "❌ Service not available" : "❌ Servicio no disponible", flags: MessageFlags.Ephemeral });
       return;
     }
     cancelReset(interaction.user.id);
@@ -1458,7 +1497,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
     const cardName = parts.slice(2).join("_").replace(`_${lang}`, "").replace(/_/g, ' ');
     const btns = lang === "en" ? buttonsEN : buttonsES;
     if (btns.giftcards?.buy === false) {
-      await interaction.reply({ content: isEN ? "❌ Service not available" : "❌ Servicio no disponible", flags: MessageFlags.Ephemeral });
+      await interaction.followUp({ content: isEN ? "❌ Service not available" : "❌ Servicio no disponible", flags: MessageFlags.Ephemeral });
       return;
     }
     cancelReset(interaction.user.id);
@@ -1494,7 +1533,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
   if (interaction.isButton() && interaction.customId === `buy_wowgt_${lang}`) {
     const btns = lang === "en" ? buttonsEN : buttonsES;
     if (btns.wow_gt?.buy === false) {
-      await interaction.reply({ content: isEN ? "❌ Service not available" : "❌ Servicio no disponible", flags: MessageFlags.Ephemeral });
+      await interaction.followUp({ content: isEN ? "❌ Service not available" : "❌ Servicio no disponible", flags: MessageFlags.Ephemeral });
       return;
     }
     cancelReset(interaction.user.id);
@@ -1511,7 +1550,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
       const game = isTicketButton ? parts[2] : parts[1];
       const server = isTicketButton ? parts.slice(3).join("_").replace(`_${lang}`, "") : parts.slice(2).join("_").replace(`_${lang}`, "");
       if (!isButtonActive(lang, game, server, tipo.toLowerCase())) {
-        await interaction.reply({ content: isEN ? "❌ Service not available" : "❌ Servicio no disponible", flags: MessageFlags.Ephemeral });
+        await interaction.followUp({ content: isEN ? "❌ Service not available" : "❌ Servicio no disponible", flags: MessageFlags.Ephemeral });
         return;
       }
       cancelReset(interaction.user.id);
@@ -1535,7 +1574,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
   if (interaction.isButton() && interaction.customId === `back_marketplace_${lang}`) {
     cancelReset(interaction.user.id);
     cancelCategoryReset(interaction.user.id);
-    await interaction.update({ 
+    await interaction.editReply({ 
       embeds: [new EmbedBuilder().setTitle(isEN ? "🛒 MARKETPLACE" : "🛒 MARKETPLACE").setDescription(isEN ? "Select a game to see its rates." : "Selecciona un juego para ver sus tasas.").setColor(0x000000)], 
       components: [getMarketplaceMenu(lang), new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId(`back_${lang}`).setLabel(isEN ? "⬅️ BACK" : "⬅️ VOLVER").setStyle(ButtonStyle.Secondary))] 
     });
@@ -1546,14 +1585,14 @@ client.on(Events.InteractionCreate, async (interaction) => {
     cancelReset(interaction.user.id);
     cancelCategoryReset(interaction.user.id);
     cancelTicketReset(interaction.user.id);
-    await interaction.update({ embeds: [getTicketEmbed(lang)], components: [getTicketButton(lang)] });
+    await interaction.editReply({ embeds: [getTicketEmbed(lang)], components: [getTicketButton(lang)] });
     return;
   }
 
   if (interaction.isButton() && interaction.customId === `back_${lang}`) {
     cancelReset(interaction.user.id);
     cancelCategoryReset(interaction.user.id);
-    await interaction.update({ embeds: [getMainEmbed(lang)], components: [getMainMenu(lang)] });
+    await interaction.editReply({ embeds: [getMainEmbed(lang)], components: [getMainMenu(lang)] });
     return;
   }
 
@@ -1563,7 +1602,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
     const isTicket = interaction.message.embeds[0]?.color === 0x5865F2;
     const embedColor = isTicket ? 0x5865F2 : 0x000000;
     const backButtonId = isTicket ? `back_ticket_${lang}` : `back_${lang}`;
-    await interaction.update({ 
+    await interaction.editReply({ 
       embeds: [new EmbedBuilder().setTitle(isEN ? "📺 STREAMING SERVICES" : "📺 SERVICIOS DE STREAMING").setDescription(isEN ? "Select a service:" : "Selecciona un servicio:").setColor(embedColor)], 
       components: [getStreamingServicesMenu(lang), new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId(backButtonId).setLabel(isEN ? "⬅️ BACK" : "⬅️ VOLVER").setStyle(ButtonStyle.Secondary))] 
     });
@@ -1576,7 +1615,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
     const isTicket = interaction.message.embeds[0]?.color === 0x5865F2;
     const embedColor = isTicket ? 0x5865F2 : 0x000000;
     const backButtonId = isTicket ? `back_ticket_${lang}` : `back_${lang}`;
-    await interaction.update({ 
+    await interaction.editReply({ 
       embeds: [new EmbedBuilder().setTitle(isEN ? "🎁 GIFT CARDS" : "🎁 TARJETAS").setDescription(isEN ? "Select a gift card:" : "Selecciona una tarjeta:").setColor(embedColor)], 
       components: [getGiftCardsMenu(lang), new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId(backButtonId).setLabel(isEN ? "⬅️ BACK" : "⬅️ VOLVER").setStyle(ButtonStyle.Secondary))] 
     });
@@ -1589,7 +1628,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
     const isTicket = interaction.message.embeds[0]?.color === 0x5865F2;
     const embedColor = isTicket ? 0x5865F2 : 0x000000;
     const backButtonId = isTicket ? `back_ticket_${lang}` : `back_${lang}`;
-    await interaction.update({ 
+    await interaction.editReply({ 
       embeds: [new EmbedBuilder().setTitle(isEN ? "💳 P2P EXCHANGE" : "💳 CAMBIO P2P").setDescription(isEN ? "Select a method:" : "Selecciona un método:").setColor(embedColor)], 
       components: [getP2PCategoriesMenu(lang), new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId(backButtonId).setLabel(isEN ? "⬅️ BACK" : "⬅️ VOLVER").setStyle(ButtonStyle.Secondary))] 
     });
@@ -1607,11 +1646,12 @@ client.on(Events.InteractionCreate, async (interaction) => {
   
   // Modal Oro
   if (interaction.type === 5 && interaction.customId && interaction.customId === `gold_form_${lang}`) {
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
     try {
       await deleteMenuMessage(interaction.user.id);
       const existingTicket = await hasOpenTicket(interaction.guild, interaction.user.username);
       if (existingTicket) {
-        await interaction.reply({ content: isEN ? `❌ You have a ticket: ${existingTicket}` : `❌ Ya tienes un ticket: ${existingTicket}`, flags: MessageFlags.Ephemeral });
+        await interaction.editReply({ content: isEN ? `❌ You have a ticket: ${existingTicket}` : `❌ Ya tienes un ticket: ${existingTicket}` });
         return;
       }
       
@@ -1643,16 +1683,18 @@ client.on(Events.InteractionCreate, async (interaction) => {
       const embed = new EmbedBuilder().setTitle("💰 GOLD").setDescription(description).setColor(0x5865F2);
       const closeButton = new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId("close_ticket").setLabel(isEN ? "🔒 CLOSE" : "🔒 CERRAR").setStyle(ButtonStyle.Danger));
       await ticketChannel.send({ content: `<@${interaction.user.id}> <@&${ID_ROL_SOPORTE}>`, embeds: [embed], components: [closeButton] });
-      await sendTempMessage(interaction, isEN ? `✅ Ticket created: ${ticketChannel}` : `✅ Ticket creado: ${ticketChannel}`, 10);
+      await interaction.editReply({ content: isEN ? `✅ Ticket created: ${ticketChannel}` : `✅ Ticket creado: ${ticketChannel}` });
+      setTimeout(() => interaction.deleteReply().catch(() => {}), 10000);
     } catch (error) {
       console.error("Error en gold form:", error);
-      await sendTempMessage(interaction, isEN ? "❌ Error creating ticket" : "❌ Error al crear ticket", 10);
+      await interaction.editReply({ content: isEN ? "❌ Error creating ticket" : "❌ Error al crear ticket" });
     }
     return;
   }
 
   // Modal Streaming
   if (interaction.type === 5 && interaction.customId && interaction.customId.startsWith("streaming_form_")) {
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
     try {
       await deleteMenuMessage(interaction.user.id);
       const langCode = interaction.customId.split("_")[2];
@@ -1660,7 +1702,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
       
       const existingTicket = await hasOpenTicket(interaction.guild, interaction.user.username);
       if (existingTicket) {
-        await interaction.reply({ content: isENlocal ? `❌ You have a ticket: ${existingTicket}` : `❌ Ya tienes un ticket: ${existingTicket}`, flags: MessageFlags.Ephemeral });
+        await interaction.editReply({ content: isENlocal ? `❌ You have a ticket: ${existingTicket}` : `❌ Ya tienes un ticket: ${existingTicket}` });
         return;
       }
       
@@ -1691,16 +1733,18 @@ client.on(Events.InteractionCreate, async (interaction) => {
       const embed = new EmbedBuilder().setTitle("📺 STREAMING").setDescription(description).setColor(0x5865F2);
       const closeButton = new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId("close_ticket").setLabel(isENlocal ? "🔒 CLOSE" : "🔒 CERRAR").setStyle(ButtonStyle.Danger));
       await ticketChannel.send({ content: `<@${interaction.user.id}> <@&${ID_ROL_SOPORTE}>`, embeds: [embed], components: [closeButton] });
-      await sendTempMessage(interaction, isENlocal ? `✅ Ticket created: ${ticketChannel}` : `✅ Ticket creado: ${ticketChannel}`, 10);
+      await interaction.editReply({ content: isENlocal ? `✅ Ticket created: ${ticketChannel}` : `✅ Ticket creado: ${ticketChannel}` });
+      setTimeout(() => interaction.deleteReply().catch(() => {}), 10000);
     } catch (error) {
       console.error("Error en streaming form:", error);
-      await sendTempMessage(interaction, isEN ? "❌ Error creating ticket" : "❌ Error al crear ticket", 10);
+      await interaction.editReply({ content: isEN ? "❌ Error creating ticket" : "❌ Error al crear ticket" });
     }
     return;
   }
 
   // Modal Gift Card
   if (interaction.type === 5 && interaction.customId && interaction.customId.startsWith("giftcard_form_")) {
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
     try {
       await deleteMenuMessage(interaction.user.id);
       const langCode = interaction.customId.split("_")[2];
@@ -1708,7 +1752,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
       
       const existingTicket = await hasOpenTicket(interaction.guild, interaction.user.username);
       if (existingTicket) {
-        await interaction.reply({ content: isENlocal ? `❌ You have a ticket: ${existingTicket}` : `❌ Ya tienes un ticket: ${existingTicket}`, flags: MessageFlags.Ephemeral });
+        await interaction.editReply({ content: isENlocal ? `❌ You have a ticket: ${existingTicket}` : `❌ Ya tienes un ticket: ${existingTicket}` });
         return;
       }
       
@@ -1739,16 +1783,18 @@ client.on(Events.InteractionCreate, async (interaction) => {
       const embed = new EmbedBuilder().setTitle("🎁 GIFT CARD").setDescription(description).setColor(0x5865F2);
       const closeButton = new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId("close_ticket").setLabel(isENlocal ? "🔒 CLOSE" : "🔒 CERRAR").setStyle(ButtonStyle.Danger));
       await ticketChannel.send({ content: `<@${interaction.user.id}> <@&${ID_ROL_SOPORTE}>`, embeds: [embed], components: [closeButton] });
-      await sendTempMessage(interaction, isENlocal ? `✅ Ticket created: ${ticketChannel}` : `✅ Ticket creado: ${ticketChannel}`, 10);
+      await interaction.editReply({ content: isENlocal ? `✅ Ticket created: ${ticketChannel}` : `✅ Ticket creado: ${ticketChannel}` });
+      setTimeout(() => interaction.deleteReply().catch(() => {}), 10000);
     } catch (error) {
       console.error("Error en giftcard form:", error);
-      await sendTempMessage(interaction, isEN ? "❌ Error creating ticket" : "❌ Error al crear ticket", 10);
+      await interaction.editReply({ content: isEN ? "❌ Error creating ticket" : "❌ Error al crear ticket" });
     }
     return;
   }
 
   // Modal Zinli
   if (interaction.type === 5 && interaction.customId && interaction.customId.startsWith("zinli_form_")) {
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
     try {
       await deleteMenuMessage(interaction.user.id);
       const langCode = interaction.customId.split("_")[2];
@@ -1756,7 +1802,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
       
       const existingTicket = await hasOpenTicket(interaction.guild, interaction.user.username);
       if (existingTicket) {
-        await interaction.reply({ content: isENlocal ? `❌ You have a ticket: ${existingTicket}` : `❌ Ya tienes un ticket: ${existingTicket}`, flags: MessageFlags.Ephemeral });
+        await interaction.editReply({ content: isENlocal ? `❌ You have a ticket: ${existingTicket}` : `❌ Ya tienes un ticket: ${existingTicket}` });
         return;
       }
       
@@ -1786,16 +1832,18 @@ client.on(Events.InteractionCreate, async (interaction) => {
       const embed = new EmbedBuilder().setTitle("💳 ZINLI").setDescription(description).setColor(0x5865F2);
       const closeButton = new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId("close_ticket").setLabel(isENlocal ? "🔒 CLOSE" : "🔒 CERRAR").setStyle(ButtonStyle.Danger));
       await ticketChannel.send({ content: `<@${interaction.user.id}> <@&${ID_ROL_SOPORTE}>`, embeds: [embed], components: [closeButton] });
-      await sendTempMessage(interaction, isENlocal ? `✅ Ticket created: ${ticketChannel}` : `✅ Ticket creado: ${ticketChannel}`, 10);
+      await interaction.editReply({ content: isENlocal ? `✅ Ticket created: ${ticketChannel}` : `✅ Ticket creado: ${ticketChannel}` });
+      setTimeout(() => interaction.deleteReply().catch(() => {}), 10000);
     } catch (error) {
       console.error("Error en zinli form:", error);
-      await sendTempMessage(interaction, isEN ? "❌ Error creating ticket" : "❌ Error al crear ticket", 10);
+      await interaction.editReply({ content: isEN ? "❌ Error creating ticket" : "❌ Error al crear ticket" });
     }
     return;
   }
 
   // Modal PayPal
   if (interaction.type === 5 && interaction.customId && interaction.customId.startsWith("paypal_form_")) {
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
     try {
       await deleteMenuMessage(interaction.user.id);
       const langCode = interaction.customId.split("_")[2];
@@ -1803,7 +1851,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
       
       const existingTicket = await hasOpenTicket(interaction.guild, interaction.user.username);
       if (existingTicket) {
-        await interaction.reply({ content: isENlocal ? `❌ You have a ticket: ${existingTicket}` : `❌ Ya tienes un ticket: ${existingTicket}`, flags: MessageFlags.Ephemeral });
+        await interaction.editReply({ content: isENlocal ? `❌ You have a ticket: ${existingTicket}` : `❌ Ya tienes un ticket: ${existingTicket}` });
         return;
       }
       
@@ -1833,16 +1881,18 @@ client.on(Events.InteractionCreate, async (interaction) => {
       const embed = new EmbedBuilder().setTitle("💳 PAYPAL").setDescription(description).setColor(0x5865F2);
       const closeButton = new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId("close_ticket").setLabel(isENlocal ? "🔒 CLOSE" : "🔒 CERRAR").setStyle(ButtonStyle.Danger));
       await ticketChannel.send({ content: `<@${interaction.user.id}> <@&${ID_ROL_SOPORTE}>`, embeds: [embed], components: [closeButton] });
-      await sendTempMessage(interaction, isENlocal ? `✅ Ticket created: ${ticketChannel}` : `✅ Ticket creado: ${ticketChannel}`, 10);
+      await interaction.editReply({ content: isENlocal ? `✅ Ticket created: ${ticketChannel}` : `✅ Ticket creado: ${ticketChannel}` });
+      setTimeout(() => interaction.deleteReply().catch(() => {}), 10000);
     } catch (error) {
       console.error("Error en paypal form:", error);
-      await sendTempMessage(interaction, isEN ? "❌ Error creating ticket" : "❌ Error al crear ticket", 10);
+      await interaction.editReply({ content: isEN ? "❌ Error creating ticket" : "❌ Error al crear ticket" });
     }
     return;
   }
 
   // Modal Bolívares → USDT
   if (interaction.type === 5 && interaction.customId && interaction.customId.startsWith("bolivares_to_usdt_form_")) {
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
     try {
       await deleteMenuMessage(interaction.user.id);
       const parts = interaction.customId.split("_");
@@ -1851,7 +1901,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
       
       const existingTicket = await hasOpenTicket(interaction.guild, interaction.user.username);
       if (existingTicket) {
-        await interaction.reply({ content: isENlocal ? `❌ You have a ticket: ${existingTicket}` : `❌ Ya tienes un ticket: ${existingTicket}`, flags: MessageFlags.Ephemeral });
+        await interaction.editReply({ content: isENlocal ? `❌ You have a ticket: ${existingTicket}` : `❌ Ya tienes un ticket: ${existingTicket}` });
         return;
       }
       
@@ -1881,16 +1931,18 @@ client.on(Events.InteractionCreate, async (interaction) => {
       const embed = new EmbedBuilder().setTitle("🇻🇪 BOLÍVARES → USDT").setDescription(description).setColor(0x5865F2);
       const closeButton = new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId("close_ticket").setLabel(isENlocal ? "🔒 CLOSE" : "🔒 CERRAR").setStyle(ButtonStyle.Danger));
       await ticketChannel.send({ content: `<@${interaction.user.id}> <@&${ID_ROL_SOPORTE}>`, embeds: [embed], components: [closeButton] });
-      await sendTempMessage(interaction, isENlocal ? `✅ Ticket created: ${ticketChannel}` : `✅ Ticket creado: ${ticketChannel}`, 10);
+      await interaction.editReply({ content: isENlocal ? `✅ Ticket created: ${ticketChannel}` : `✅ Ticket creado: ${ticketChannel}` });
+      setTimeout(() => interaction.deleteReply().catch(() => {}), 10000);
     } catch (error) {
       console.error("Error en bolivares to usdt form:", error);
-      await sendTempMessage(interaction, isEN ? "❌ Error creating ticket" : "❌ Error al crear ticket", 10);
+      await interaction.editReply({ content: isEN ? "❌ Error creating ticket" : "❌ Error al crear ticket" });
     }
     return;
   }
 
   // Modal USDT → Bolívares
   if (interaction.type === 5 && interaction.customId && interaction.customId.startsWith("usdt_to_bolivares_form_")) {
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
     try {
       await deleteMenuMessage(interaction.user.id);
       const parts = interaction.customId.split("_");
@@ -1899,7 +1951,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
       
       const existingTicket = await hasOpenTicket(interaction.guild, interaction.user.username);
       if (existingTicket) {
-        await interaction.reply({ content: isENlocal ? `❌ You have a ticket: ${existingTicket}` : `❌ Ya tienes un ticket: ${existingTicket}`, flags: MessageFlags.Ephemeral });
+        await interaction.editReply({ content: isENlocal ? `❌ You have a ticket: ${existingTicket}` : `❌ Ya tienes un ticket: ${existingTicket}` });
         return;
       }
       
@@ -1929,21 +1981,23 @@ client.on(Events.InteractionCreate, async (interaction) => {
       const embed = new EmbedBuilder().setTitle("🇻🇪 USDT → BOLÍVARES").setDescription(description).setColor(0x5865F2);
       const closeButton = new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId("close_ticket").setLabel(isENlocal ? "🔒 CLOSE" : "🔒 CERRAR").setStyle(ButtonStyle.Danger));
       await ticketChannel.send({ content: `<@${interaction.user.id}> <@&${ID_ROL_SOPORTE}>`, embeds: [embed], components: [closeButton] });
-      await sendTempMessage(interaction, isENlocal ? `✅ Ticket created: ${ticketChannel}` : `✅ Ticket creado: ${ticketChannel}`, 10);
+      await interaction.editReply({ content: isENlocal ? `✅ Ticket created: ${ticketChannel}` : `✅ Ticket creado: ${ticketChannel}` });
+      setTimeout(() => interaction.deleteReply().catch(() => {}), 10000);
     } catch (error) {
       console.error("Error en usdt to bolivares form:", error);
-      await sendTempMessage(interaction, isEN ? "❌ Error creating ticket" : "❌ Error al crear ticket", 10);
+      await interaction.editReply({ content: isEN ? "❌ Error creating ticket" : "❌ Error al crear ticket" });
     }
     return;
   }
 
   // Modal Wow Game Time
   if (interaction.type === 5 && interaction.customId && interaction.customId === `wowgt_form_${lang}`) {
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
     try {
       await deleteMenuMessage(interaction.user.id);
       const existingTicket = await hasOpenTicket(interaction.guild, interaction.user.username);
       if (existingTicket) {
-        await interaction.reply({ content: isEN ? `❌ You have a ticket: ${existingTicket}` : `❌ Ya tienes un ticket: ${existingTicket}`, flags: MessageFlags.Ephemeral });
+        await interaction.editReply({ content: isEN ? `❌ You have a ticket: ${existingTicket}` : `❌ Ya tienes un ticket: ${existingTicket}` });
         return;
       }
       
@@ -1973,21 +2027,23 @@ client.on(Events.InteractionCreate, async (interaction) => {
       const embed = new EmbedBuilder().setTitle("🕒 WOW GAME TIME").setDescription(description).setColor(0x5865F2);
       const closeButton = new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId("close_ticket").setLabel(isEN ? "🔒 CLOSE" : "🔒 CERRAR").setStyle(ButtonStyle.Danger));
       await ticketChannel.send({ content: `<@${interaction.user.id}> <@&${ID_ROL_SOPORTE}>`, embeds: [embed], components: [closeButton] });
-      await sendTempMessage(interaction, isEN ? `✅ Ticket created: ${ticketChannel}` : `✅ Ticket creado: ${ticketChannel}`, 10);
+      await interaction.editReply({ content: isEN ? `✅ Ticket created: ${ticketChannel}` : `✅ Ticket creado: ${ticketChannel}` });
+      setTimeout(() => interaction.deleteReply().catch(() => {}), 10000);
     } catch (error) {
       console.error("Error en wowgt form:", error);
-      await sendTempMessage(interaction, isEN ? "❌ Error creating ticket" : "❌ Error al crear ticket", 10);
+      await interaction.editReply({ content: isEN ? "❌ Error creating ticket" : "❌ Error al crear ticket" });
     }
     return;
   }
 
   // Modal Other
   if (interaction.type === 5 && interaction.customId && interaction.customId === `other_form_${lang}`) {
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
     try {
       await deleteMenuMessage(interaction.user.id);
       const existingTicket = await hasOpenTicket(interaction.guild, interaction.user.username);
       if (existingTicket) {
-        await interaction.reply({ content: isEN ? `❌ You have a ticket: ${existingTicket}` : `❌ Ya tienes un ticket: ${existingTicket}`, flags: MessageFlags.Ephemeral });
+        await interaction.editReply({ content: isEN ? `❌ You have a ticket: ${existingTicket}` : `❌ Ya tienes un ticket: ${existingTicket}` });
         return;
       }
       
@@ -2017,21 +2073,23 @@ client.on(Events.InteractionCreate, async (interaction) => {
       const embed = new EmbedBuilder().setTitle("❓ OTHER").setDescription(description).setColor(0x5865F2);
       const closeButton = new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId("close_ticket").setLabel(isEN ? "🔒 CLOSE" : "🔒 CERRAR").setStyle(ButtonStyle.Danger));
       await ticketChannel.send({ content: `<@${interaction.user.id}> <@&${ID_ROL_SOPORTE}>`, embeds: [embed], components: [closeButton] });
-      await sendTempMessage(interaction, isEN ? `✅ Ticket created: ${ticketChannel}` : `✅ Ticket creado: ${ticketChannel}`, 10);
+      await interaction.editReply({ content: isEN ? `✅ Ticket created: ${ticketChannel}` : `✅ Ticket creado: ${ticketChannel}` });
+      setTimeout(() => interaction.deleteReply().catch(() => {}), 10000);
     } catch (error) {
       console.error("Error en other form:", error);
-      await sendTempMessage(interaction, isEN ? "❌ Error creating ticket" : "❌ Error al crear ticket", 10);
+      await interaction.editReply({ content: isEN ? "❌ Error creating ticket" : "❌ Error al crear ticket" });
     }
     return;
   }
 
   // Modal Leveling
   if (interaction.type === 5 && interaction.customId && interaction.customId === `leveling_form_${lang}`) {
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
     try {
       await deleteMenuMessage(interaction.user.id);
       const existingTicket = await hasOpenTicket(interaction.guild, interaction.user.username);
       if (existingTicket) {
-        await interaction.reply({ content: isEN ? `❌ You have a ticket: ${existingTicket}` : `❌ Ya tienes un ticket: ${existingTicket}`, flags: MessageFlags.Ephemeral });
+        await interaction.editReply({ content: isEN ? `❌ You have a ticket: ${existingTicket}` : `❌ Ya tienes un ticket: ${existingTicket}` });
         return;
       }
       
@@ -2063,21 +2121,23 @@ client.on(Events.InteractionCreate, async (interaction) => {
       const embed = new EmbedBuilder().setTitle("📈 LEVELING").setDescription(description).setColor(0x5865F2);
       const closeButton = new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId("close_ticket").setLabel(isEN ? "🔒 CLOSE" : "🔒 CERRAR").setStyle(ButtonStyle.Danger));
       await ticketChannel.send({ content: `<@${interaction.user.id}> <@&${ID_ROL_SOPORTE}>`, embeds: [embed], components: [closeButton] });
-      await sendTempMessage(interaction, isEN ? `✅ Ticket created: ${ticketChannel}` : `✅ Ticket creado: ${ticketChannel}`, 10);
+      await interaction.editReply({ content: isEN ? `✅ Ticket created: ${ticketChannel}` : `✅ Ticket creado: ${ticketChannel}` });
+      setTimeout(() => interaction.deleteReply().catch(() => {}), 10000);
     } catch (error) {
       console.error("Error en leveling form:", error);
-      await sendTempMessage(interaction, isEN ? "❌ Error creating ticket" : "❌ Error al crear ticket", 10);
+      await interaction.editReply({ content: isEN ? "❌ Error creating ticket" : "❌ Error al crear ticket" });
     }
     return;
   }
 
   // Modal Professions
   if (interaction.type === 5 && interaction.customId && interaction.customId === `professions_form_${lang}`) {
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
     try {
       await deleteMenuMessage(interaction.user.id);
       const existingTicket = await hasOpenTicket(interaction.guild, interaction.user.username);
       if (existingTicket) {
-        await interaction.reply({ content: isEN ? `❌ You have a ticket: ${existingTicket}` : `❌ Ya tienes un ticket: ${existingTicket}`, flags: MessageFlags.Ephemeral });
+        await interaction.editReply({ content: isEN ? `❌ You have a ticket: ${existingTicket}` : `❌ Ya tienes un ticket: ${existingTicket}` });
         return;
       }
       
@@ -2109,26 +2169,46 @@ client.on(Events.InteractionCreate, async (interaction) => {
       const embed = new EmbedBuilder().setTitle("⚙️ PROFESSIONS").setDescription(description).setColor(0x5865F2);
       const closeButton = new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId("close_ticket").setLabel(isEN ? "🔒 CLOSE" : "🔒 CERRAR").setStyle(ButtonStyle.Danger));
       await ticketChannel.send({ content: `<@${interaction.user.id}> <@&${ID_ROL_SOPORTE}>`, embeds: [embed], components: [closeButton] });
-      await sendTempMessage(interaction, isEN ? `✅ Ticket created: ${ticketChannel}` : `✅ Ticket creado: ${ticketChannel}`, 10);
+      await interaction.editReply({ content: isEN ? `✅ Ticket created: ${ticketChannel}` : `✅ Ticket creado: ${ticketChannel}` });
+      setTimeout(() => interaction.deleteReply().catch(() => {}), 10000);
     } catch (error) {
       console.error("Error en professions form:", error);
-      await sendTempMessage(interaction, isEN ? "❌ Error creating ticket" : "❌ Error al crear ticket", 10);
+      await interaction.editReply({ content: isEN ? "❌ Error creating ticket" : "❌ Error al crear ticket" });
     }
     return;
   }
 });
 
-// ========== SERVIDOR WEB FALSO PARA MANTENER EL BOT ACTIVO EN RENDER ==========
+// ========== SERVIDOR WEB PARA KEEP ALIVE EN RENDER ==========
 const express = require('express');
 const app = express();
 const port = process.env.PORT || 10000;
 
 app.get('/', (req, res) => {
-  res.send('¡El bot TradeHud está funcionando correctamente!');
+  res.send('¡El bot TradeHub está funcionando correctamente!');
+});
+
+app.get('/ping', (req, res) => {
+  res.send('pong');
 });
 
 app.listen(port, () => {
-  console.log(`✅ Servidor web falso escuchando en el puerto ${port}`);
+  console.log(`✅ Servidor web keep-alive escuchando en el puerto ${port}`);
+});
+
+// ========== MANEJO DE CIERRE GRACIOSO ==========
+process.on('SIGINT', () => {
+  console.log('🛑 Apagando bot...');
+  stopKeepAlive();
+  client.destroy();
+  process.exit(0);
+});
+
+process.on('SIGTERM', () => {
+  console.log('🛑 Terminando bot...');
+  stopKeepAlive();
+  client.destroy();
+  process.exit(0);
 });
 
 // ========== INICIAR EL BOT ==========
