@@ -415,7 +415,7 @@ async function showStreamingService(interaction, lang, serviceName) {
     .setDescription(`${planList}\n\n${isEN ? "Click WE SELL to purchase" : "Haz clic en VENDEMOS para comprar"}\n${isEN ? METODOS_RESUMIDOS_EN : METODOS_RESUMIDOS_ES}`)
     .setColor(0x5865F2);
   
-  await interaction.editReply({ 
+  await interaction.update({ 
     embeds: [embed], 
     components: [new ActionRowBuilder().addComponents(
       new ButtonBuilder().setCustomId(`buy_streaming_${serviceName}_${lang}`).setLabel(isEN ? "🟢 WE SELL" : "🟢 VENDEMOS").setStyle(ButtonStyle.Success),
@@ -436,7 +436,7 @@ async function showGiftCard(interaction, lang, cardName) {
     .setDescription(`${amountList}\n\n${isEN ? "Click WE SELL to purchase" : "Haz clic en VENDEMOS para comprar"}\n${isEN ? METODOS_RESUMIDOS_EN : METODOS_RESUMIDOS_ES}`)
     .setColor(0x5865F2);
   
-  await interaction.editReply({ 
+  await interaction.update({ 
     embeds: [embed], 
     components: [new ActionRowBuilder().addComponents(
       new ButtonBuilder().setCustomId(`buy_giftcard_${cardName}_${lang}`).setLabel(isEN ? "🟢 WE SELL" : "🟢 VENDEMOS").setStyle(ButtonStyle.Success),
@@ -488,7 +488,7 @@ async function showP2PCategory(interaction, lang, categoryName) {
     buyCustomId = `buy_p2p_${categoryKey.toLowerCase()}_${lang}`;
   }
   
-  await interaction.editReply({ 
+  await interaction.update({ 
     embeds: [embed], 
     components: [new ActionRowBuilder().addComponents(
       new ButtonBuilder().setCustomId(buyCustomId).setLabel(isEN ? "🟢 WE SELL" : "🟢 VENDEMOS").setStyle(ButtonStyle.Success),
@@ -497,7 +497,7 @@ async function showP2PCategory(interaction, lang, categoryName) {
   });
 }
 
-// ========== FORMULARIOS ==========
+// ========== FORMULARIOS MODALES ==========
 async function showGoldForm(interaction, lang, gameName, serverName, tipo) {
   const isEN = lang === "en";
   const modal = new ModalBuilder()
@@ -1035,11 +1035,11 @@ async function registerCommands() {
   } catch (error) { console.error("Error al registrar comandos:", error); }
 }
 
-// ========== KEEP ALIVE SYSTEM ==========
+// ========== KEEP ALIVE ==========
 let keepAliveInterval;
 function startKeepAlive() {
   keepAliveInterval = setInterval(() => {
-    console.log(`💓 Keep-alive ping - ${new Date().toISOString()}`);
+    console.log(`💓 Keep-alive - ${new Date().toISOString()}`);
     if (client.user) {
       client.user.setPresence({ activities: [{ name: "TradeHub MMORPG", type: 3 }] });
     }
@@ -1055,20 +1055,7 @@ client.once(Events.ClientReady, async () => {
   await registerCommands();
   console.log("✅ Bot listo");
   console.log("📌 Comandos: /menu_es | /menu_en | /ticket_es | /ticket_en | /redes");
-  
   startKeepAlive();
-  
-  client.on(Events.Error, (error) => {
-    console.error("❌ Error del cliente:", error);
-  });
-  
-  client.on(Events.Disconnect, (event) => {
-    console.log(`⚠️ Desconectado: ${event.reason}`);
-  });
-  
-  client.on(Events.Reconnecting, () => {
-    console.log("🔄 Reconectando...");
-  });
 });
 
 client.on(Events.InteractionCreate, async (interaction) => {
@@ -1126,15 +1113,9 @@ client.on(Events.InteractionCreate, async (interaction) => {
     return;
   }
 
-  // ========== DEFER INMEDIATO PARA BOTONES Y MENÚS ==========
-  if (interaction.isButton() || interaction.isStringSelectMenu()) {
-    if (!interaction.deferred && !interaction.replied) {
-      await interaction.deferUpdate().catch(() => {});
-    }
-  }
-
   // ========== ABRIR TICKET ==========
   if (interaction.isButton() && interaction.customId === `open_ticket_${lang}`) {
+    await interaction.deferUpdate();
     const existingTicket = await hasOpenTicket(interaction.guild, interaction.user.username);
     if (existingTicket) {
       await interaction.followUp({ content: isEN ? `❌ You have a ticket: ${existingTicket}` : `❌ Ya tienes un ticket: ${existingTicket}`, flags: MessageFlags.Ephemeral });
@@ -1147,6 +1128,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
 
   // ========== MENÚ PRINCIPAL DE PRECIOS ==========
   if (interaction.isStringSelectMenu() && interaction.customId === `main_menu_${lang}`) {
+    await interaction.deferUpdate();
     const key = interaction.values[0];
     const btns = lang === "en" ? buttonsEN : buttonsES;
     cancelCategoryReset(interaction.user.id);
@@ -1227,6 +1209,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
 
   // ========== MENÚ PRINCIPAL DE TICKETS ==========
   if (interaction.isStringSelectMenu() && interaction.customId === `ticket_main_menu_${lang}`) {
+    await interaction.deferUpdate();
     const key = interaction.values[0];
     const btns = lang === "en" ? buttonsEN : buttonsES;
     
@@ -1316,6 +1299,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
 
   // ========== MARKETPLACE MENU ==========
   if (interaction.isStringSelectMenu() && interaction.customId === `marketplace_menu_${lang}`) {
+    await interaction.deferUpdate();
     const key = interaction.values[0];
     const data = lang === "en" ? dataEN : dataES;
     cancelCategoryReset(interaction.user.id);
@@ -1394,6 +1378,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
 
   // ========== STREAMING SERVICES MENU ==========
   if (interaction.isStringSelectMenu() && interaction.customId === `streaming_services_menu_${lang}`) {
+    await interaction.deferUpdate();
     const value = interaction.values[0];
     const serviceName = value.replace("streaming_", "").replace(/_/g, ' ').split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
     const data = lang === "en" ? dataEN : dataES;
@@ -1406,6 +1391,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
 
   // ========== GIFT CARDS MENU ==========
   if (interaction.isStringSelectMenu() && interaction.customId === `giftcards_menu_${lang}`) {
+    await interaction.deferUpdate();
     const value = interaction.values[0];
     const cardName = value.replace("giftcard_", "").replace(/_/g, ' ');
     const data = lang === "en" ? dataEN : dataES;
@@ -1418,6 +1404,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
 
   // ========== P2P CATEGORIES MENU ==========
   if (interaction.isStringSelectMenu() && interaction.customId === `p2p_categories_menu_${lang}`) {
+    await interaction.deferUpdate();
     const value = interaction.values[0];
     let categoryKey = value.replace("p2p_", "");
     let displayName = "";
@@ -1432,6 +1419,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
 
   // ========== TICKET BOOST TYPE MENU ==========
   if (interaction.isStringSelectMenu() && interaction.customId === `ticket_boost_type_menu_${lang}`) {
+    await interaction.deferUpdate();
     const boostType = interaction.values[0];
     if (boostType === "leveling") await showLevelingForm(interaction, lang);
     else if (boostType === "professions") await showProfessionsForm(interaction, lang);
@@ -1440,6 +1428,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
 
   // ========== SUB-MENÚS ==========
   if (interaction.isStringSelectMenu() && interaction.customId === `sub_${lang}`) {
+    await interaction.deferUpdate();
     const selectedValue = interaction.values[0];
     const data = lang === "en" ? dataEN : dataES;
     const game = data[selectedValue];
@@ -1457,6 +1446,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
 
   // ========== SELECCIÓN DE SERVIDOR ==========
   if (interaction.isStringSelectMenu() && interaction.customId.startsWith(`select_`)) {
+    await interaction.deferUpdate();
     const parts = interaction.customId.split("_");
     const gameKey = parts[1];
     const data = lang === "en" ? dataEN : dataES;
@@ -1483,7 +1473,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
     const serviceName = parts.slice(2).join("_").replace(`_${lang}`, "").replace(/_/g, ' ');
     const btns = lang === "en" ? buttonsEN : buttonsES;
     if (btns.streaming?.buy === false) {
-      await interaction.followUp({ content: isEN ? "❌ Service not available" : "❌ Servicio no disponible", flags: MessageFlags.Ephemeral });
+      await interaction.reply({ content: isEN ? "❌ Service not available" : "❌ Servicio no disponible", flags: MessageFlags.Ephemeral });
       return;
     }
     cancelReset(interaction.user.id);
@@ -1497,7 +1487,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
     const cardName = parts.slice(2).join("_").replace(`_${lang}`, "").replace(/_/g, ' ');
     const btns = lang === "en" ? buttonsEN : buttonsES;
     if (btns.giftcards?.buy === false) {
-      await interaction.followUp({ content: isEN ? "❌ Service not available" : "❌ Servicio no disponible", flags: MessageFlags.Ephemeral });
+      await interaction.reply({ content: isEN ? "❌ Service not available" : "❌ Servicio no disponible", flags: MessageFlags.Ephemeral });
       return;
     }
     cancelReset(interaction.user.id);
@@ -1533,7 +1523,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
   if (interaction.isButton() && interaction.customId === `buy_wowgt_${lang}`) {
     const btns = lang === "en" ? buttonsEN : buttonsES;
     if (btns.wow_gt?.buy === false) {
-      await interaction.followUp({ content: isEN ? "❌ Service not available" : "❌ Servicio no disponible", flags: MessageFlags.Ephemeral });
+      await interaction.reply({ content: isEN ? "❌ Service not available" : "❌ Servicio no disponible", flags: MessageFlags.Ephemeral });
       return;
     }
     cancelReset(interaction.user.id);
@@ -1550,7 +1540,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
       const game = isTicketButton ? parts[2] : parts[1];
       const server = isTicketButton ? parts.slice(3).join("_").replace(`_${lang}`, "") : parts.slice(2).join("_").replace(`_${lang}`, "");
       if (!isButtonActive(lang, game, server, tipo.toLowerCase())) {
-        await interaction.followUp({ content: isEN ? "❌ Service not available" : "❌ Servicio no disponible", flags: MessageFlags.Ephemeral });
+        await interaction.reply({ content: isEN ? "❌ Service not available" : "❌ Servicio no disponible", flags: MessageFlags.Ephemeral });
         return;
       }
       cancelReset(interaction.user.id);
@@ -1564,6 +1554,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
 
   // ========== BOOST TYPE MENU ==========
   if (interaction.isStringSelectMenu() && interaction.customId === `boost_type_menu_${lang}`) {
+    await interaction.deferUpdate();
     const boostType = interaction.values[0];
     if (boostType === "leveling") await showLevelingForm(interaction, lang);
     else if (boostType === "professions") await showProfessionsForm(interaction, lang);
@@ -1572,6 +1563,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
 
   // ========== BOTONES VOLVER ==========
   if (interaction.isButton() && interaction.customId === `back_marketplace_${lang}`) {
+    await interaction.deferUpdate();
     cancelReset(interaction.user.id);
     cancelCategoryReset(interaction.user.id);
     await interaction.editReply({ 
@@ -1582,6 +1574,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
   }
 
   if (interaction.isButton() && interaction.customId === `back_ticket_${lang}`) {
+    await interaction.deferUpdate();
     cancelReset(interaction.user.id);
     cancelCategoryReset(interaction.user.id);
     cancelTicketReset(interaction.user.id);
@@ -1590,6 +1583,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
   }
 
   if (interaction.isButton() && interaction.customId === `back_${lang}`) {
+    await interaction.deferUpdate();
     cancelReset(interaction.user.id);
     cancelCategoryReset(interaction.user.id);
     await interaction.editReply({ embeds: [getMainEmbed(lang)], components: [getMainMenu(lang)] });
@@ -1597,6 +1591,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
   }
 
   if (interaction.isButton() && interaction.customId === `back_streaming_${lang}`) {
+    await interaction.deferUpdate();
     cancelReset(interaction.user.id);
     cancelCategoryReset(interaction.user.id);
     const isTicket = interaction.message.embeds[0]?.color === 0x5865F2;
@@ -1610,6 +1605,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
   }
 
   if (interaction.isButton() && interaction.customId === `back_giftcards_${lang}`) {
+    await interaction.deferUpdate();
     cancelReset(interaction.user.id);
     cancelCategoryReset(interaction.user.id);
     const isTicket = interaction.message.embeds[0]?.color === 0x5865F2;
@@ -1623,6 +1619,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
   }
 
   if (interaction.isButton() && interaction.customId === `back_p2p_${lang}`) {
+    await interaction.deferUpdate();
     cancelReset(interaction.user.id);
     cancelCategoryReset(interaction.user.id);
     const isTicket = interaction.message.embeds[0]?.color === 0x5865F2;
@@ -2179,7 +2176,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
   }
 });
 
-// ========== SERVIDOR WEB PARA KEEP ALIVE EN RENDER ==========
+// ========== SERVIDOR WEB ==========
 const express = require('express');
 const app = express();
 const port = process.env.PORT || 10000;
@@ -2193,10 +2190,10 @@ app.get('/ping', (req, res) => {
 });
 
 app.listen(port, () => {
-  console.log(`✅ Servidor web keep-alive escuchando en el puerto ${port}`);
+  console.log(`✅ Servidor web escuchando en el puerto ${port}`);
 });
 
-// ========== MANEJO DE CIERRE GRACIOSO ==========
+// ========== MANEJO DE CIERRE ==========
 process.on('SIGINT', () => {
   console.log('🛑 Apagando bot...');
   stopKeepAlive();
