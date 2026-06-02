@@ -403,7 +403,7 @@ function getSubMenu(options, customId, placeholder, lang) {
   );
 }
 
-// ========== FUNCIONES CORREGIDAS ==========
+// ========== FUNCIONES DE SERVICIOS ==========
 async function showStreamingService(interaction, lang, serviceName) {
   const isEN = lang === "en";
   const data = lang === "en" ? dataEN : dataES;
@@ -498,7 +498,9 @@ async function showP2PCategory(interaction, lang, categoryName) {
   });
 }
 
-// ========== FORMULARIOS MODALES ==========
+// ========== MODALES COMPLETOS ==========
+
+// Modal Oro
 async function showGoldForm(interaction, lang, gameName, serverName, tipo) {
   const isEN = lang === "en";
   const modal = new ModalBuilder()
@@ -550,6 +552,7 @@ async function showGoldForm(interaction, lang, gameName, serverName, tipo) {
   await interaction.showModal(modal);
 }
 
+// Modal Streaming
 async function showStreamingPurchaseForm(interaction, lang, serviceName) {
   const isEN = lang === "en";
   const modal = new ModalBuilder()
@@ -593,6 +596,7 @@ async function showStreamingPurchaseForm(interaction, lang, serviceName) {
   await interaction.showModal(modal);
 }
 
+// Modal Gift Card
 async function showGiftCardPurchaseForm(interaction, lang, cardName) {
   const isEN = lang === "en";
   const modal = new ModalBuilder()
@@ -636,6 +640,7 @@ async function showGiftCardPurchaseForm(interaction, lang, cardName) {
   await interaction.showModal(modal);
 }
 
+// Modal Zinli
 async function showZinliForm(interaction, lang) {
   const isEN = lang === "en";
   const modal = new ModalBuilder()
@@ -671,6 +676,7 @@ async function showZinliForm(interaction, lang) {
   await interaction.showModal(modal);
 }
 
+// Modal PayPal
 async function showPayPalForm(interaction, lang) {
   const isEN = lang === "en";
   const modal = new ModalBuilder()
@@ -706,6 +712,7 @@ async function showPayPalForm(interaction, lang) {
   await interaction.showModal(modal);
 }
 
+// Modal Bolívares → USDT
 async function showBolivaresToUSDTForm(interaction, lang) {
   const isEN = lang === "en";
   const modal = new ModalBuilder()
@@ -741,6 +748,7 @@ async function showBolivaresToUSDTForm(interaction, lang) {
   await interaction.showModal(modal);
 }
 
+// Modal USDT → Bolívares
 async function showUSDTToBolivaresForm(interaction, lang) {
   const isEN = lang === "en";
   const modal = new ModalBuilder()
@@ -776,6 +784,7 @@ async function showUSDTToBolivaresForm(interaction, lang) {
   await interaction.showModal(modal);
 }
 
+// Modal WoW Game Time
 async function showWowGTForm(interaction, lang) {
   const isEN = lang === "en";
   const modal = new ModalBuilder()
@@ -811,6 +820,7 @@ async function showWowGTForm(interaction, lang) {
   await interaction.showModal(modal);
 }
 
+// Modal Other
 async function showOtherForm(interaction, lang) {
   const isEN = lang === "en";
   const modal = new ModalBuilder()
@@ -846,6 +856,9 @@ async function showOtherForm(interaction, lang) {
   await interaction.showModal(modal);
 }
 
+// ========== MODALES CORREGIDOS: LEVELING y PROFESSIONS ==========
+
+// Modal Leveling
 async function showLevelingForm(interaction, lang) {
   const isEN = lang === "en";
   const modal = new ModalBuilder()
@@ -897,6 +910,7 @@ async function showLevelingForm(interaction, lang) {
   await interaction.showModal(modal);
 }
 
+// Modal Professions
 async function showProfessionsForm(interaction, lang) {
   const isEN = lang === "en";
   const modal = new ModalBuilder()
@@ -1120,15 +1134,14 @@ client.on(Events.InteractionCreate, async (interaction) => {
       return;
     }
 
-    // ========== SOLO PARA MENÚS y BOTONES QUE NO MUESTRAN MODALES ==========
-    // IMPORTANTE: NO hacer deferUpdate en botones que van a mostrar modales
+    // ========== SOLO PARA MENÚS ==========
     if (interaction.isStringSelectMenu()) {
       if (!interaction.deferred && !interaction.replied) {
         await interaction.deferUpdate().catch(() => {});
       }
     }
 
-    // ========== ABRIR TICKET (BOTÓN QUE NO USA MODAL) ==========
+    // ========== ABRIR TICKET ==========
     if (interaction.isButton() && interaction.customId === `open_ticket_${lang}`) {
       if (!interaction.deferred && !interaction.replied) {
         await interaction.deferUpdate();
@@ -1206,7 +1219,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
       return;
     }
 
-    // ========== BOTONES QUE MUESTRAN MODALES (NO hacer deferUpdate) ==========
+    // ========== BOTONES QUE MUESTRAN MODALES ==========
     
     // Botones Streaming
     if (interaction.isButton() && interaction.customId.startsWith("buy_streaming_")) {
@@ -1285,7 +1298,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
       }
     }
 
-    // ========== MENÚS (StringSelectMenu) ==========
+    // ========== MENÚS ==========
     
     // Menú Principal de Precios
     if (interaction.isStringSelectMenu() && interaction.customId === `main_menu_${lang}`) {
@@ -1604,7 +1617,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
       return;
     }
 
-    // ========== MODALES ==========
+    // ========== PROCESAR MODALES ==========
     
     // Modal Oro
     if (interaction.type === 5 && interaction.customId && interaction.customId === `gold_form_${lang}`) {
@@ -1654,6 +1667,103 @@ client.on(Events.InteractionCreate, async (interaction) => {
       return;
     }
 
+    // Modal Leveling
+    if (interaction.type === 5 && interaction.customId && interaction.customId === `leveling_form_${lang}`) {
+      await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+      try {
+        await deleteMenuMessage(interaction.user.id);
+        const existingTicket = await hasOpenTicket(interaction.guild, interaction.user.username);
+        if (existingTicket) {
+          await interaction.editReply({ content: isEN ? `❌ You have a ticket: ${existingTicket}` : `❌ Ya tienes un ticket: ${existingTicket}` });
+          return;
+        }
+        
+        const juegoServidor = interaction.fields.getTextInputValue("juego_servidor");
+        const claseFaccion = interaction.fields.getTextInputValue("clase_faccion");
+        const niveles = interaction.fields.getTextInputValue("niveles");
+        const personajePago = interaction.fields.getTextInputValue("personaje_pago");
+        const descripcion = interaction.fields.getTextInputValue("descripcion") || (isEN ? "None" : "Ninguna");
+        
+        const description = isEN 
+          ? `**Client:** <@${interaction.user.id}>\n**Service:** Leveling\n**Game & Server:** ${juegoServidor}\n**Class/Faction:** ${claseFaccion}\n**Levels:** ${niveles}\n**Character & Payment:** ${personajePago}\n**Description:** ${descripcion}`
+          : `**Cliente:** <@${interaction.user.id}>\n**Servicio:** Leveling\n**Juego y Servidor:** ${juegoServidor}\n**Clase/Facción:** ${claseFaccion}\n**Niveles:** ${niveles}\n**Personaje y Pago:** ${personajePago}\n**Descripción:** ${descripcion}`;
+        
+        const category = await interaction.guild.channels.fetch(ID_CATEGORIA_TICKETS);
+        const safeUsername = interaction.user.username.replace(/[^a-zA-Z0-9]/g, "-").substring(0, 20);
+        const ticketName = `ticket-${safeUsername}`;
+        
+        const ticketChannel = await interaction.guild.channels.create({
+          name: ticketName,
+          type: 0,
+          parent: category,
+          permissionOverwrites: [
+            { id: interaction.guild.id, deny: [PermissionsBitField.Flags.ViewChannel] },
+            { id: interaction.user.id, allow: [PermissionsBitField.Flags.ViewChannel, PermissionsBitField.Flags.SendMessages, PermissionsBitField.Flags.ReadMessageHistory] },
+            { id: ID_ROL_SOPORTE, allow: [PermissionsBitField.Flags.ViewChannel, PermissionsBitField.Flags.SendMessages, PermissionsBitField.Flags.ReadMessageHistory] }
+          ]
+        });
+        
+        const embed = new EmbedBuilder().setTitle("📈 LEVELING").setDescription(description).setColor(0x5865F2);
+        const closeButton = new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId("close_ticket").setLabel(isEN ? "🔒 CLOSE" : "🔒 CERRAR").setStyle(ButtonStyle.Danger));
+        await ticketChannel.send({ content: `<@${interaction.user.id}> <@&${ID_ROL_SOPORTE}>`, embeds: [embed], components: [closeButton] });
+        await interaction.editReply({ content: isEN ? `✅ Ticket created: ${ticketChannel}` : `✅ Ticket creado: ${ticketChannel}` });
+        setTimeout(() => interaction.deleteReply().catch(() => {}), 10000);
+      } catch (error) {
+        console.error("Error en leveling form:", error);
+        await interaction.editReply({ content: isEN ? "❌ Error creating ticket" : "❌ Error al crear ticket" });
+      }
+      return;
+    }
+
+    // Modal Professions
+    if (interaction.type === 5 && interaction.customId && interaction.customId === `professions_form_${lang}`) {
+      await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+      try {
+        await deleteMenuMessage(interaction.user.id);
+        const existingTicket = await hasOpenTicket(interaction.guild, interaction.user.username);
+        if (existingTicket) {
+          await interaction.editReply({ content: isEN ? `❌ You have a ticket: ${existingTicket}` : `❌ Ya tienes un ticket: ${existingTicket}` });
+          return;
+        }
+        
+        const juegoServidor = interaction.fields.getTextInputValue("juego_servidor");
+        const profesiones = interaction.fields.getTextInputValue("profesiones");
+        const niveles = interaction.fields.getTextInputValue("niveles");
+        const personajePago = interaction.fields.getTextInputValue("personaje_pago");
+        const descripcion = interaction.fields.getTextInputValue("descripcion") || (isEN ? "None" : "Ninguna");
+        
+        const description = isEN 
+          ? `**Client:** <@${interaction.user.id}>\n**Service:** Professions\n**Game & Server:** ${juegoServidor}\n**Professions:** ${profesiones}\n**Levels:** ${niveles}\n**Character & Payment:** ${personajePago}\n**Description:** ${descripcion}`
+          : `**Cliente:** <@${interaction.user.id}>\n**Servicio:** Profesiones\n**Juego y Servidor:** ${juegoServidor}\n**Profesiones:** ${profesiones}\n**Niveles:** ${niveles}\n**Personaje y Pago:** ${personajePago}\n**Descripción:** ${descripcion}`;
+        
+        const category = await interaction.guild.channels.fetch(ID_CATEGORIA_TICKETS);
+        const safeUsername = interaction.user.username.replace(/[^a-zA-Z0-9]/g, "-").substring(0, 20);
+        const ticketName = `ticket-${safeUsername}`;
+        
+        const ticketChannel = await interaction.guild.channels.create({
+          name: ticketName,
+          type: 0,
+          parent: category,
+          permissionOverwrites: [
+            { id: interaction.guild.id, deny: [PermissionsBitField.Flags.ViewChannel] },
+            { id: interaction.user.id, allow: [PermissionsBitField.Flags.ViewChannel, PermissionsBitField.Flags.SendMessages, PermissionsBitField.Flags.ReadMessageHistory] },
+            { id: ID_ROL_SOPORTE, allow: [PermissionsBitField.Flags.ViewChannel, PermissionsBitField.Flags.SendMessages, PermissionsBitField.Flags.ReadMessageHistory] }
+          ]
+        });
+        
+        const embed = new EmbedBuilder().setTitle("⚙️ PROFESSIONS").setDescription(description).setColor(0x5865F2);
+        const closeButton = new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId("close_ticket").setLabel(isEN ? "🔒 CLOSE" : "🔒 CERRAR").setStyle(ButtonStyle.Danger));
+        await ticketChannel.send({ content: `<@${interaction.user.id}> <@&${ID_ROL_SOPORTE}>`, embeds: [embed], components: [closeButton] });
+        await interaction.editReply({ content: isEN ? `✅ Ticket created: ${ticketChannel}` : `✅ Ticket creado: ${ticketChannel}` });
+        setTimeout(() => interaction.deleteReply().catch(() => {}), 10000);
+      } catch (error) {
+        console.error("Error en professions form:", error);
+        await interaction.editReply({ content: isEN ? "❌ Error creating ticket" : "❌ Error al crear ticket" });
+      }
+      return;
+    }
+
+    // ========== RESTO DE MODALES (Streaming, GiftCard, Zinli, PayPal, etc.) ==========
     // Modal Streaming
     if (interaction.type === 5 && interaction.customId && interaction.customId.startsWith("streaming_form_")) {
       await interaction.deferReply({ flags: MessageFlags.Ephemeral });
@@ -1952,7 +2062,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
       return;
     }
 
-    // Modal Wow Game Time
+    // Modal WoW Game Time
     if (interaction.type === 5 && interaction.customId && interaction.customId === `wowgt_form_${lang}`) {
       await interaction.deferReply({ flags: MessageFlags.Ephemeral });
       try {
@@ -2039,102 +2149,6 @@ client.on(Events.InteractionCreate, async (interaction) => {
         setTimeout(() => interaction.deleteReply().catch(() => {}), 10000);
       } catch (error) {
         console.error("Error en other form:", error);
-        await interaction.editReply({ content: isEN ? "❌ Error creating ticket" : "❌ Error al crear ticket" });
-      }
-      return;
-    }
-
-    // Modal Leveling
-    if (interaction.type === 5 && interaction.customId && interaction.customId === `leveling_form_${lang}`) {
-      await interaction.deferReply({ flags: MessageFlags.Ephemeral });
-      try {
-        await deleteMenuMessage(interaction.user.id);
-        const existingTicket = await hasOpenTicket(interaction.guild, interaction.user.username);
-        if (existingTicket) {
-          await interaction.editReply({ content: isEN ? `❌ You have a ticket: ${existingTicket}` : `❌ Ya tienes un ticket: ${existingTicket}` });
-          return;
-        }
-        
-        const juegoServidor = interaction.fields.getTextInputValue("juego_servidor");
-        const claseFaccion = interaction.fields.getTextInputValue("clase_faccion");
-        const niveles = interaction.fields.getTextInputValue("niveles");
-        const personajePago = interaction.fields.getTextInputValue("personaje_pago");
-        const descripcion = interaction.fields.getTextInputValue("descripcion") || (isEN ? "None" : "Ninguna");
-        
-        const description = isEN 
-          ? `**Client:** <@${interaction.user.id}>\n**Service:** Leveling\n**Game & Server:** ${juegoServidor}\n**Class/Faction:** ${claseFaccion}\n**Levels:** ${niveles}\n**Character & Payment:** ${personajePago}\n**Description:** ${descripcion}`
-          : `**Cliente:** <@${interaction.user.id}>\n**Servicio:** Leveling\n**Juego y Servidor:** ${juegoServidor}\n**Clase/Facción:** ${claseFaccion}\n**Niveles:** ${niveles}\n**Personaje y Pago:** ${personajePago}\n**Descripción:** ${descripcion}`;
-        
-        const category = await interaction.guild.channels.fetch(ID_CATEGORIA_TICKETS);
-        const safeUsername = interaction.user.username.replace(/[^a-zA-Z0-9]/g, "-").substring(0, 20);
-        const ticketName = `ticket-${safeUsername}`;
-        
-        const ticketChannel = await interaction.guild.channels.create({
-          name: ticketName,
-          type: 0,
-          parent: category,
-          permissionOverwrites: [
-            { id: interaction.guild.id, deny: [PermissionsBitField.Flags.ViewChannel] },
-            { id: interaction.user.id, allow: [PermissionsBitField.Flags.ViewChannel, PermissionsBitField.Flags.SendMessages, PermissionsBitField.Flags.ReadMessageHistory] },
-            { id: ID_ROL_SOPORTE, allow: [PermissionsBitField.Flags.ViewChannel, PermissionsBitField.Flags.SendMessages, PermissionsBitField.Flags.ReadMessageHistory] }
-          ]
-        });
-        
-        const embed = new EmbedBuilder().setTitle("📈 LEVELING").setDescription(description).setColor(0x5865F2);
-        const closeButton = new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId("close_ticket").setLabel(isEN ? "🔒 CLOSE" : "🔒 CERRAR").setStyle(ButtonStyle.Danger));
-        await ticketChannel.send({ content: `<@${interaction.user.id}> <@&${ID_ROL_SOPORTE}>`, embeds: [embed], components: [closeButton] });
-        await interaction.editReply({ content: isEN ? `✅ Ticket created: ${ticketChannel}` : `✅ Ticket creado: ${ticketChannel}` });
-        setTimeout(() => interaction.deleteReply().catch(() => {}), 10000);
-      } catch (error) {
-        console.error("Error en leveling form:", error);
-        await interaction.editReply({ content: isEN ? "❌ Error creating ticket" : "❌ Error al crear ticket" });
-      }
-      return;
-    }
-
-    // Modal Professions
-    if (interaction.type === 5 && interaction.customId && interaction.customId === `professions_form_${lang}`) {
-      await interaction.deferReply({ flags: MessageFlags.Ephemeral });
-      try {
-        await deleteMenuMessage(interaction.user.id);
-        const existingTicket = await hasOpenTicket(interaction.guild, interaction.user.username);
-        if (existingTicket) {
-          await interaction.editReply({ content: isEN ? `❌ You have a ticket: ${existingTicket}` : `❌ Ya tienes un ticket: ${existingTicket}` });
-          return;
-        }
-        
-        const juegoServidor = interaction.fields.getTextInputValue("juego_servidor");
-        const profesiones = interaction.fields.getTextInputValue("profesiones");
-        const niveles = interaction.fields.getTextInputValue("niveles");
-        const personajePago = interaction.fields.getTextInputValue("personaje_pago");
-        const descripcion = interaction.fields.getTextInputValue("descripcion") || (isEN ? "None" : "Ninguna");
-        
-        const description = isEN 
-          ? `**Client:** <@${interaction.user.id}>\n**Service:** Professions\n**Game & Server:** ${juegoServidor}\n**Professions:** ${profesiones}\n**Levels:** ${niveles}\n**Character & Payment:** ${personajePago}\n**Description:** ${descripcion}`
-          : `**Cliente:** <@${interaction.user.id}>\n**Servicio:** Profesiones\n**Juego y Servidor:** ${juegoServidor}\n**Profesiones:** ${profesiones}\n**Niveles:** ${niveles}\n**Personaje y Pago:** ${personajePago}\n**Descripción:** ${descripcion}`;
-        
-        const category = await interaction.guild.channels.fetch(ID_CATEGORIA_TICKETS);
-        const safeUsername = interaction.user.username.replace(/[^a-zA-Z0-9]/g, "-").substring(0, 20);
-        const ticketName = `ticket-${safeUsername}`;
-        
-        const ticketChannel = await interaction.guild.channels.create({
-          name: ticketName,
-          type: 0,
-          parent: category,
-          permissionOverwrites: [
-            { id: interaction.guild.id, deny: [PermissionsBitField.Flags.ViewChannel] },
-            { id: interaction.user.id, allow: [PermissionsBitField.Flags.ViewChannel, PermissionsBitField.Flags.SendMessages, PermissionsBitField.Flags.ReadMessageHistory] },
-            { id: ID_ROL_SOPORTE, allow: [PermissionsBitField.Flags.ViewChannel, PermissionsBitField.Flags.SendMessages, PermissionsBitField.Flags.ReadMessageHistory] }
-          ]
-        });
-        
-        const embed = new EmbedBuilder().setTitle("⚙️ PROFESSIONS").setDescription(description).setColor(0x5865F2);
-        const closeButton = new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId("close_ticket").setLabel(isEN ? "🔒 CLOSE" : "🔒 CERRAR").setStyle(ButtonStyle.Danger));
-        await ticketChannel.send({ content: `<@${interaction.user.id}> <@&${ID_ROL_SOPORTE}>`, embeds: [embed], components: [closeButton] });
-        await interaction.editReply({ content: isEN ? `✅ Ticket created: ${ticketChannel}` : `✅ Ticket creado: ${ticketChannel}` });
-        setTimeout(() => interaction.deleteReply().catch(() => {}), 10000);
-      } catch (error) {
-        console.error("Error en professions form:", error);
         await interaction.editReply({ content: isEN ? "❌ Error creating ticket" : "❌ Error al crear ticket" });
       }
       return;
