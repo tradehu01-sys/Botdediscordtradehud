@@ -23,13 +23,14 @@ const path = require('path');
 const TOKEN = process.env.TOKEN;
 const CLIENT_ID = "1487907790776303788";
 
-// CANALES
+// CANALES - ¡AGREGA EL ID DEL CANAL open-ticket!
 const ID_CANAL_TASAS_ES = "1484487858697015296";
 const ID_CANAL_TASAS_EN = "1488724030948118658";
 const ID_CANAL_LOGS = "ID_DEL_CANAL_DE_LOGS";
 
 const ID_CANAL_TICKET_ES = "1492311657752559616";
 const ID_CANAL_TICKET_EN = "1492385603269038220";
+const ID_CANAL_OPEN_TICKET = "1492385603269038220"; // ⚠️ CAMBIA ESTO POR EL ID REAL del canal "open-ticket"
 const ID_CANAL_REDES_1 = "1486845340052361347";
 const ID_CANAL_REDES_2 = "1488753637583884369";
 
@@ -498,7 +499,7 @@ async function showP2PCategory(interaction, lang, categoryName) {
   });
 }
 
-// ========== MODALES COMPLETOS ==========
+// ========== MODALES ==========
 
 // Modal Oro
 async function showGoldForm(interaction, lang, gameName, serverName, tipo) {
@@ -856,8 +857,6 @@ async function showOtherForm(interaction, lang) {
   await interaction.showModal(modal);
 }
 
-// ========== MODALES CORREGIDOS: LEVELING y PROFESSIONS ==========
-
 // Modal Leveling
 async function showLevelingForm(interaction, lang) {
   const isEN = lang === "en";
@@ -1079,10 +1078,20 @@ client.once(Events.ClientReady, async () => {
 });
 
 client.on(Events.InteractionCreate, async (interaction) => {
+  // ========== DETERMINAR IDIOMA CORRECTAMENTE ==========
   let lang = "es";
-  if (interaction.customId && interaction.customId.endsWith("_en")) lang = "en";
-  else if (interaction.channelId === ID_CANAL_TICKET_EN) lang = "en";
-  else if (interaction.channelId === ID_CANAL_TASAS_EN) lang = "en";
+  
+  // Verificar por el sufijo en customId
+  if (interaction.customId && interaction.customId.endsWith("_en")) {
+    lang = "en";
+  }
+  // Verificar por el canal (incluyendo open-ticket)
+  else if (interaction.channelId === ID_CANAL_TICKET_EN || 
+           interaction.channelId === ID_CANAL_TASAS_EN ||
+           interaction.channelId === ID_CANAL_OPEN_TICKET) {
+    lang = "en";
+  }
+  
   const isEN = lang === "en";
 
   try {
@@ -1219,7 +1228,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
       return;
     }
 
-    // ========== BOTONES QUE MUESTRAN MODALES ==========
+    // ========== BOTONES QUE MUESTRAN MODALES (NO hacer deferUpdate) ==========
     
     // Botones Streaming
     if (interaction.isButton() && interaction.customId.startsWith("buy_streaming_")) {
@@ -1763,7 +1772,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
       return;
     }
 
-    // ========== RESTO DE MODALES (Streaming, GiftCard, Zinli, PayPal, etc.) ==========
+    // ========== RESTO DE MODALES ==========
     // Modal Streaming
     if (interaction.type === 5 && interaction.customId && interaction.customId.startsWith("streaming_form_")) {
       await interaction.deferReply({ flags: MessageFlags.Ephemeral });
