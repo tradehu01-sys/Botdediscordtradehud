@@ -23,14 +23,13 @@ const path = require('path');
 const TOKEN = process.env.TOKEN;
 const CLIENT_ID = "1487907790776303788";
 
-// CANALES - ¡AGREGA EL ID DEL CANAL open-ticket!
+// CANALES
 const ID_CANAL_TASAS_ES = "1484487858697015296";
 const ID_CANAL_TASAS_EN = "1488724030948118658";
 const ID_CANAL_LOGS = "ID_DEL_CANAL_DE_LOGS";
 
 const ID_CANAL_TICKET_ES = "1492311657752559616";
 const ID_CANAL_TICKET_EN = "1492385603269038220";
-const ID_CANAL_OPEN_TICKET = "1492385603269038220"; // ⚠️ CAMBIA ESTO POR EL ID REAL del canal "open-ticket"
 const ID_CANAL_REDES_1 = "1486845340052361347";
 const ID_CANAL_REDES_2 = "1488753637583884369";
 
@@ -857,6 +856,8 @@ async function showOtherForm(interaction, lang) {
   await interaction.showModal(modal);
 }
 
+// ========== MODALES DE BOOSTING (CORREGIDOS) ==========
+
 // Modal Leveling
 async function showLevelingForm(interaction, lang) {
   const isEN = lang === "en";
@@ -1078,20 +1079,11 @@ client.once(Events.ClientReady, async () => {
 });
 
 client.on(Events.InteractionCreate, async (interaction) => {
-  // ========== DETERMINAR IDIOMA CORRECTAMENTE ==========
+  // ========== DETERMINAR IDIOMA ==========
   let lang = "es";
-  
-  // Verificar por el sufijo en customId
-  if (interaction.customId && interaction.customId.endsWith("_en")) {
-    lang = "en";
-  }
-  // Verificar por el canal (incluyendo open-ticket)
-  else if (interaction.channelId === ID_CANAL_TICKET_EN || 
-           interaction.channelId === ID_CANAL_TASAS_EN ||
-           interaction.channelId === ID_CANAL_OPEN_TICKET) {
-    lang = "en";
-  }
-  
+  if (interaction.customId && interaction.customId.endsWith("_en")) lang = "en";
+  else if (interaction.channelId === ID_CANAL_TICKET_EN) lang = "en";
+  else if (interaction.channelId === ID_CANAL_TASAS_EN) lang = "en";
   const isEN = lang === "en";
 
   try {
@@ -1143,7 +1135,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
       return;
     }
 
-    // ========== SOLO PARA MENÚS ==========
+    // ========== DEFER PARA MENÚS ==========
     if (interaction.isStringSelectMenu()) {
       if (!interaction.deferred && !interaction.replied) {
         await interaction.deferUpdate().catch(() => {});
@@ -1228,7 +1220,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
       return;
     }
 
-    // ========== BOTONES QUE MUESTRAN MODALES (NO hacer deferUpdate) ==========
+    // ========== BOTONES QUE MUESTRAN MODALES ==========
     
     // Botones Streaming
     if (interaction.isButton() && interaction.customId.startsWith("buy_streaming_")) {
@@ -1307,9 +1299,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
       }
     }
 
-    // ========== MENÚS ==========
-    
-    // Menú Principal de Precios
+    // ========== MENÚ PRINCIPAL DE PRECIOS ==========
     if (interaction.isStringSelectMenu() && interaction.customId === `main_menu_${lang}`) {
       const key = interaction.values[0];
       const btns = lang === "en" ? buttonsEN : buttonsES;
@@ -1389,7 +1379,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
       }
     }
 
-    // Menú Principal de Tickets
+    // ========== MENÚ PRINCIPAL DE TICKETS ==========
     if (interaction.isStringSelectMenu() && interaction.customId === `ticket_main_menu_${lang}`) {
       const key = interaction.values[0];
       const btns = lang === "en" ? buttonsEN : buttonsES;
@@ -1478,7 +1468,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
       }
     }
 
-    // Marketplace Menu
+    // ========== MARKETPLACE MENU ==========
     if (interaction.isStringSelectMenu() && interaction.customId === `marketplace_menu_${lang}`) {
       const key = interaction.values[0];
       const data = lang === "en" ? dataEN : dataES;
@@ -1533,7 +1523,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
       }
     }
 
-    // Streaming Services Menu
+    // ========== STREAMING SERVICES MENU ==========
     if (interaction.isStringSelectMenu() && interaction.customId === `streaming_services_menu_${lang}`) {
       const value = interaction.values[0];
       const serviceName = value.replace("streaming_", "").replace(/_/g, ' ').split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
@@ -1545,7 +1535,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
       return;
     }
 
-    // Gift Cards Menu
+    // ========== GIFT CARDS MENU ==========
     if (interaction.isStringSelectMenu() && interaction.customId === `giftcards_menu_${lang}`) {
       const value = interaction.values[0];
       const cardName = value.replace("giftcard_", "").replace(/_/g, ' ');
@@ -1557,7 +1547,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
       return;
     }
 
-    // P2P Categories Menu
+    // ========== P2P CATEGORIES MENU ==========
     if (interaction.isStringSelectMenu() && interaction.customId === `p2p_categories_menu_${lang}`) {
       const value = interaction.values[0];
       let categoryKey = value.replace("p2p_", "");
@@ -1571,7 +1561,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
       return;
     }
 
-    // Ticket Boost Type Menu
+    // ========== TICKET BOOST TYPE MENU ==========
     if (interaction.isStringSelectMenu() && interaction.customId === `ticket_boost_type_menu_${lang}`) {
       const boostType = interaction.values[0];
       if (boostType === "leveling") await showLevelingForm(interaction, lang);
@@ -1579,7 +1569,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
       return;
     }
 
-    // Sub-menús
+    // ========== SUB-MENÚS ==========
     if (interaction.isStringSelectMenu() && interaction.customId === `sub_${lang}`) {
       const selectedValue = interaction.values[0];
       const data = lang === "en" ? dataEN : dataES;
@@ -1596,7 +1586,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
       }
     }
 
-    // Selección de Servidor
+    // ========== SELECCIÓN DE SERVIDOR ==========
     if (interaction.isStringSelectMenu() && interaction.customId.startsWith(`select_`)) {
       const parts = interaction.customId.split("_");
       const gameKey = parts[1];
@@ -1618,7 +1608,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
       return;
     }
 
-    // Boost Type Menu
+    // ========== BOOST TYPE MENU ==========
     if (interaction.isStringSelectMenu() && interaction.customId === `boost_type_menu_${lang}`) {
       const boostType = interaction.values[0];
       if (boostType === "leveling") await showLevelingForm(interaction, lang);
