@@ -856,7 +856,7 @@ async function showOtherForm(interaction, lang) {
   await interaction.showModal(modal);
 }
 
-// ========== MODALES DE BOOSTING (CORREGIDOS) ==========
+// ========== MODALES DE BOOSTING ==========
 
 // Modal Leveling
 async function showLevelingForm(interaction, lang) {
@@ -1135,8 +1135,9 @@ client.on(Events.InteractionCreate, async (interaction) => {
       return;
     }
 
-    // ========== DEFER PARA MENÚS ==========
-    if (interaction.isStringSelectMenu()) {
+    // ========== DEFER SOLO PARA MENÚS QUE NO MUESTRAN MODALES ==========
+    // IMPORTANTE: NO hacer deferUpdate en el menú boost_type_menu porque muestra modales
+    if (interaction.isStringSelectMenu() && interaction.customId !== `boost_type_menu_${lang}` && interaction.customId !== `ticket_boost_type_menu_${lang}`) {
       if (!interaction.deferred && !interaction.replied) {
         await interaction.deferUpdate().catch(() => {});
       }
@@ -1301,6 +1302,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
 
     // ========== MENÚ PRINCIPAL DE PRECIOS ==========
     if (interaction.isStringSelectMenu() && interaction.customId === `main_menu_${lang}`) {
+      await interaction.deferUpdate();
       const key = interaction.values[0];
       const btns = lang === "en" ? buttonsEN : buttonsES;
       cancelCategoryReset(interaction.user.id);
@@ -1381,6 +1383,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
 
     // ========== MENÚ PRINCIPAL DE TICKETS ==========
     if (interaction.isStringSelectMenu() && interaction.customId === `ticket_main_menu_${lang}`) {
+      await interaction.deferUpdate();
       const key = interaction.values[0];
       const btns = lang === "en" ? buttonsEN : buttonsES;
       
@@ -1470,6 +1473,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
 
     // ========== MARKETPLACE MENU ==========
     if (interaction.isStringSelectMenu() && interaction.customId === `marketplace_menu_${lang}`) {
+      await interaction.deferUpdate();
       const key = interaction.values[0];
       const data = lang === "en" ? dataEN : dataES;
       cancelCategoryReset(interaction.user.id);
@@ -1525,6 +1529,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
 
     // ========== STREAMING SERVICES MENU ==========
     if (interaction.isStringSelectMenu() && interaction.customId === `streaming_services_menu_${lang}`) {
+      await interaction.deferUpdate();
       const value = interaction.values[0];
       const serviceName = value.replace("streaming_", "").replace(/_/g, ' ').split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
       const data = lang === "en" ? dataEN : dataES;
@@ -1537,6 +1542,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
 
     // ========== GIFT CARDS MENU ==========
     if (interaction.isStringSelectMenu() && interaction.customId === `giftcards_menu_${lang}`) {
+      await interaction.deferUpdate();
       const value = interaction.values[0];
       const cardName = value.replace("giftcard_", "").replace(/_/g, ' ');
       const data = lang === "en" ? dataEN : dataES;
@@ -1549,6 +1555,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
 
     // ========== P2P CATEGORIES MENU ==========
     if (interaction.isStringSelectMenu() && interaction.customId === `p2p_categories_menu_${lang}`) {
+      await interaction.deferUpdate();
       const value = interaction.values[0];
       let categoryKey = value.replace("p2p_", "");
       let displayName = "";
@@ -1562,15 +1569,20 @@ client.on(Events.InteractionCreate, async (interaction) => {
     }
 
     // ========== TICKET BOOST TYPE MENU ==========
+    // ⚠️ IMPORTANTE: Este menú NO debe tener deferUpdate porque muestra un modal
     if (interaction.isStringSelectMenu() && interaction.customId === `ticket_boost_type_menu_${lang}`) {
       const boostType = interaction.values[0];
-      if (boostType === "leveling") await showLevelingForm(interaction, lang);
-      else if (boostType === "professions") await showProfessionsForm(interaction, lang);
+      if (boostType === "leveling") {
+        await showLevelingForm(interaction, lang);
+      } else if (boostType === "professions") {
+        await showProfessionsForm(interaction, lang);
+      }
       return;
     }
 
     // ========== SUB-MENÚS ==========
     if (interaction.isStringSelectMenu() && interaction.customId === `sub_${lang}`) {
+      await interaction.deferUpdate();
       const selectedValue = interaction.values[0];
       const data = lang === "en" ? dataEN : dataES;
       const game = data[selectedValue];
@@ -1588,6 +1600,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
 
     // ========== SELECCIÓN DE SERVIDOR ==========
     if (interaction.isStringSelectMenu() && interaction.customId.startsWith(`select_`)) {
+      await interaction.deferUpdate();
       const parts = interaction.customId.split("_");
       const gameKey = parts[1];
       const data = lang === "en" ? dataEN : dataES;
@@ -1608,11 +1621,15 @@ client.on(Events.InteractionCreate, async (interaction) => {
       return;
     }
 
-    // ========== BOOST TYPE MENU ==========
+    // ========== BOOST TYPE MENU (PRINCIPAL) ==========
+    // ⚠️ IMPORTANTE: Este menú NO debe tener deferUpdate porque muestra un modal
     if (interaction.isStringSelectMenu() && interaction.customId === `boost_type_menu_${lang}`) {
       const boostType = interaction.values[0];
-      if (boostType === "leveling") await showLevelingForm(interaction, lang);
-      else if (boostType === "professions") await showProfessionsForm(interaction, lang);
+      if (boostType === "leveling") {
+        await showLevelingForm(interaction, lang);
+      } else if (boostType === "professions") {
+        await showProfessionsForm(interaction, lang);
+      }
       return;
     }
 
