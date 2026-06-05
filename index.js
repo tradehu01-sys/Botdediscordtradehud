@@ -1052,11 +1052,6 @@ function stopKeepAlive() {
   if (keepAliveInterval) clearInterval(keepAliveInterval);
 }
 
-// ========== MANEJAR ERRORES NO CAPTURADOS ==========
-process.on('unhandledRejection', (error) => {
-  console.error('❌ Error no capturado:', error);
-});
-
 client.once(Events.ClientReady, async () => {
   console.log(`🚀 Bot conectado como ${client.user.tag}`);
   await registerCommands();
