@@ -403,7 +403,6 @@ function getSubMenu(options, customId, placeholder, lang) {
   );
 }
 
-// ========== FUNCIONES CORREGIDAS ==========
 async function showStreamingService(interaction, lang, serviceName) {
   const isEN = lang === "en";
   const data = lang === "en" ? dataEN : dataES;
@@ -416,7 +415,7 @@ async function showStreamingService(interaction, lang, serviceName) {
     .setDescription(`${planList}\n\n${isEN ? "Click WE SELL to purchase" : "Haz clic en VENDEMOS para comprar"}\n${isEN ? METODOS_RESUMIDOS_EN : METODOS_RESUMIDOS_ES}`)
     .setColor(0x5865F2);
   
-  await interaction.editReply({ 
+  await interaction.update({ 
     embeds: [embed], 
     components: [new ActionRowBuilder().addComponents(
       new ButtonBuilder().setCustomId(`buy_streaming_${serviceName}_${lang}`).setLabel(isEN ? "🟢 WE SELL" : "🟢 VENDEMOS").setStyle(ButtonStyle.Success),
@@ -437,7 +436,7 @@ async function showGiftCard(interaction, lang, cardName) {
     .setDescription(`${amountList}\n\n${isEN ? "Click WE SELL to purchase" : "Haz clic en VENDEMOS para comprar"}\n${isEN ? METODOS_RESUMIDOS_EN : METODOS_RESUMIDOS_ES}`)
     .setColor(0x5865F2);
   
-  await interaction.editReply({ 
+  await interaction.update({ 
     embeds: [embed], 
     components: [new ActionRowBuilder().addComponents(
       new ButtonBuilder().setCustomId(`buy_giftcard_${cardName}_${lang}`).setLabel(isEN ? "🟢 WE SELL" : "🟢 VENDEMOS").setStyle(ButtonStyle.Success),
@@ -489,7 +488,7 @@ async function showP2PCategory(interaction, lang, categoryName) {
     buyCustomId = `buy_p2p_${categoryKey.toLowerCase()}_${lang}`;
   }
   
-  await interaction.editReply({ 
+  await interaction.update({ 
     embeds: [embed], 
     components: [new ActionRowBuilder().addComponents(
       new ButtonBuilder().setCustomId(buyCustomId).setLabel(isEN ? "🟢 WE SELL" : "🟢 VENDEMOS").setStyle(ButtonStyle.Success),
@@ -846,6 +845,7 @@ async function showOtherForm(interaction, lang) {
   await interaction.showModal(modal);
 }
 
+// ========== MODALES DE BOOSTING (AGREGADOS) ==========
 async function showLevelingForm(interaction, lang) {
   const isEN = lang === "en";
   const modal = new ModalBuilder()
@@ -1120,15 +1120,14 @@ client.on(Events.InteractionCreate, async (interaction) => {
       return;
     }
 
-    // ========== SOLO PARA MENÚS y BOTONES QUE NO MUESTRAN MODALES ==========
-    // IMPORTANTE: NO hacer deferUpdate en botones que van a mostrar modales
+    // ========== SOLO PARA MENÚS ==========
     if (interaction.isStringSelectMenu()) {
       if (!interaction.deferred && !interaction.replied) {
         await interaction.deferUpdate().catch(() => {});
       }
     }
 
-    // ========== ABRIR TICKET (BOTÓN QUE NO USA MODAL) ==========
+    // ========== ABRIR TICKET ==========
     if (interaction.isButton() && interaction.customId === `open_ticket_${lang}`) {
       if (!interaction.deferred && !interaction.replied) {
         await interaction.deferUpdate();
@@ -1367,7 +1366,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
       }
     }
 
-    // Menú Principal de Tickets
+    // ========== MENÚ PRINCIPAL DE TICKETS ==========
     if (interaction.isStringSelectMenu() && interaction.customId === `ticket_main_menu_${lang}`) {
       const key = interaction.values[0];
       const btns = lang === "en" ? buttonsEN : buttonsES;
@@ -1456,7 +1455,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
       }
     }
 
-    // Marketplace Menu
+    // ========== MARKETPLACE MENU ==========
     if (interaction.isStringSelectMenu() && interaction.customId === `marketplace_menu_${lang}`) {
       const key = interaction.values[0];
       const data = lang === "en" ? dataEN : dataES;
@@ -1511,7 +1510,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
       }
     }
 
-    // Streaming Services Menu
+    // ========== STREAMING SERVICES MENU ==========
     if (interaction.isStringSelectMenu() && interaction.customId === `streaming_services_menu_${lang}`) {
       const value = interaction.values[0];
       const serviceName = value.replace("streaming_", "").replace(/_/g, ' ').split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
@@ -1523,7 +1522,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
       return;
     }
 
-    // Gift Cards Menu
+    // ========== GIFT CARDS MENU ==========
     if (interaction.isStringSelectMenu() && interaction.customId === `giftcards_menu_${lang}`) {
       const value = interaction.values[0];
       const cardName = value.replace("giftcard_", "").replace(/_/g, ' ');
@@ -1535,7 +1534,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
       return;
     }
 
-    // P2P Categories Menu
+    // ========== P2P CATEGORIES MENU ==========
     if (interaction.isStringSelectMenu() && interaction.customId === `p2p_categories_menu_${lang}`) {
       const value = interaction.values[0];
       let categoryKey = value.replace("p2p_", "");
@@ -1549,15 +1548,18 @@ client.on(Events.InteractionCreate, async (interaction) => {
       return;
     }
 
-    // Ticket Boost Type Menu
+    // ========== TICKET BOOST TYPE MENU ==========
     if (interaction.isStringSelectMenu() && interaction.customId === `ticket_boost_type_menu_${lang}`) {
       const boostType = interaction.values[0];
-      if (boostType === "leveling") await showLevelingForm(interaction, lang);
-      else if (boostType === "professions") await showProfessionsForm(interaction, lang);
+      if (boostType === "leveling") {
+        await showLevelingForm(interaction, lang);
+      } else if (boostType === "professions") {
+        await showProfessionsForm(interaction, lang);
+      }
       return;
     }
 
-    // Sub-menús
+    // ========== SUB-MENÚS ==========
     if (interaction.isStringSelectMenu() && interaction.customId === `sub_${lang}`) {
       const selectedValue = interaction.values[0];
       const data = lang === "en" ? dataEN : dataES;
@@ -1574,7 +1576,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
       }
     }
 
-    // Selección de Servidor
+    // ========== SELECCIÓN DE SERVIDOR ==========
     if (interaction.isStringSelectMenu() && interaction.customId.startsWith(`select_`)) {
       const parts = interaction.customId.split("_");
       const gameKey = parts[1];
@@ -1596,11 +1598,14 @@ client.on(Events.InteractionCreate, async (interaction) => {
       return;
     }
 
-    // Boost Type Menu
+    // ========== BOOST TYPE MENU ==========
     if (interaction.isStringSelectMenu() && interaction.customId === `boost_type_menu_${lang}`) {
       const boostType = interaction.values[0];
-      if (boostType === "leveling") await showLevelingForm(interaction, lang);
-      else if (boostType === "professions") await showProfessionsForm(interaction, lang);
+      if (boostType === "leveling") {
+        await showLevelingForm(interaction, lang);
+      } else if (boostType === "professions") {
+        await showProfessionsForm(interaction, lang);
+      }
       return;
     }
 
@@ -2043,6 +2048,8 @@ client.on(Events.InteractionCreate, async (interaction) => {
       }
       return;
     }
+
+    // ========== MODALES DE BOOSTING (AGREGADOS) ==========
 
     // Modal Leveling
     if (interaction.type === 5 && interaction.customId && interaction.customId === `leveling_form_${lang}`) {
