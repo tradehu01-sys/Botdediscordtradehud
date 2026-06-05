@@ -845,7 +845,7 @@ async function showOtherForm(interaction, lang) {
   await interaction.showModal(modal);
 }
 
-// ========== MODALES DE BOOSTING (AGREGADOS) ==========
+// ========== MODALES DE BOOSTING ==========
 async function showLevelingForm(interaction, lang) {
   const isEN = lang === "en";
   const modal = new ModalBuilder()
@@ -2049,7 +2049,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
       return;
     }
 
-    // ========== MODALES DE BOOSTING (AGREGADOS) ==========
+    // ========== MODALES DE BOOSTING ==========
 
     // Modal Leveling
     if (interaction.type === 5 && interaction.customId && interaction.customId === `leveling_form_${lang}`) {
