@@ -845,7 +845,7 @@ async function showOtherForm(interaction, lang) {
   await interaction.showModal(modal);
 }
 
-// ========== MODALES DE BOOSTING ==========
+// ========== MODALES DE BOOSTING (AGREGADOS CORRECTAMENTE) ==========
 async function showLevelingForm(interaction, lang) {
   const isEN = lang === "en";
   const modal = new ModalBuilder()
@@ -1120,7 +1120,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
       return;
     }
 
-    // ========== SOLO PARA MENÚS ==========
+    // ========== DEFER UPDATE PARA TODOS LOS MENÚS (como estaba originalmente) ==========
     if (interaction.isStringSelectMenu()) {
       if (!interaction.deferred && !interaction.replied) {
         await interaction.deferUpdate().catch(() => {});
@@ -1205,7 +1205,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
       return;
     }
 
-    // ========== BOTONES QUE MUESTRAN MODALES (NO hacer deferUpdate) ==========
+    // ========== BOTONES QUE MUESTRAN MODALES ==========
     
     // Botones Streaming
     if (interaction.isButton() && interaction.customId.startsWith("buy_streaming_")) {
@@ -1284,9 +1284,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
       }
     }
 
-    // ========== MENÚS (StringSelectMenu) ==========
-    
-    // Menú Principal de Precios
+    // ========== MENÚ PRINCIPAL DE PRECIOS ==========
     if (interaction.isStringSelectMenu() && interaction.customId === `main_menu_${lang}`) {
       const key = interaction.values[0];
       const btns = lang === "en" ? buttonsEN : buttonsES;
