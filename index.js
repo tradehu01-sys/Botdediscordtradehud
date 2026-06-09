@@ -18,16 +18,16 @@ const {
 } = require("discord.js");
 const fs = require('fs');
 const path = require('path');
-const express = require('express');
 
 /* ================= CONFIGURACIÓN ================= */
 const TOKEN = process.env.TOKEN;
 const CLIENT_ID = "1487907790776303788";
 
-// CANALES (actualiza con los IDs correctos de tu servidor)
+// CANALES
 const ID_CANAL_TASAS_ES = "1484487858697015296";
 const ID_CANAL_TASAS_EN = "1488724030948118658";
 const ID_CANAL_LOGS = "ID_DEL_CANAL_DE_LOGS";
+
 const ID_CANAL_TICKET_ES = "1492311657752559616";
 const ID_CANAL_TICKET_EN = "1492385603269038220";
 const ID_CANAL_REDES_1 = "1486845340052361347";
@@ -57,7 +57,7 @@ const BUTTONS_FILE_ES = path.join(__dirname, 'buttons.json');
 const PRICES_FILE_EN = path.join(__dirname, 'prices_en.json');
 const BUTTONS_FILE_EN = path.join(__dirname, 'buttons_en.json');
 
-// ========== FUNCIONES DE CARGA ==========
+// ========== FUNCIONES ==========
 function loadPrices(lang) {
   const file = lang === "en" ? PRICES_FILE_EN : PRICES_FILE_ES;
   try {
@@ -84,6 +84,7 @@ let pricesEN = loadPrices("en");
 let buttonsEN = loadButtons("en");
 
 if (!pricesES) {
+  console.log("⚠️ prices.json no encontrado, creando estructura básica...");
   pricesES = {};
   fs.writeFileSync(PRICES_FILE_ES, JSON.stringify({}, null, 2));
 }
@@ -246,7 +247,9 @@ function scheduleReset(interaction, messageId, lang) {
         });
       }
       userTimeouts.delete(interaction.user.id);
-    } catch (e) { console.error("Error en scheduleReset:", e); }
+    } catch (e) {
+      console.error("Error en scheduleReset:", e);
+    }
   }, 20000);
   userTimeouts.set(interaction.user.id, timeout);
 }
@@ -264,7 +267,9 @@ function scheduleCategoryReset(interaction, messageId, lang) {
         });
       }
       categoryTimeouts.delete(interaction.user.id);
-    } catch (e) { console.error("Error en scheduleCategoryReset:", e); }
+    } catch (e) {
+      console.error("Error en scheduleCategoryReset:", e);
+    }
   }, 20000);
   categoryTimeouts.set(interaction.user.id, timeout);
 }
@@ -282,7 +287,9 @@ function scheduleTicketReset(interaction, messageId, lang) {
         });
       }
       ticketTimeouts.delete(interaction.user.id);
-    } catch (e) { console.error("Error en scheduleTicketReset:", e); }
+    } catch (e) {
+      console.error("Error en scheduleTicketReset:", e);
+    }
   }, 20000);
   ticketTimeouts.set(interaction.user.id, timeout);
 }
@@ -291,7 +298,6 @@ function cancelCategoryReset(userId) { if (categoryTimeouts.has(userId)) { clear
 function cancelReset(userId) { if (userTimeouts.has(userId)) { clearTimeout(userTimeouts.get(userId)); userTimeouts.delete(userId); } }
 function cancelTicketReset(userId) { if (ticketTimeouts.has(userId)) { clearTimeout(ticketTimeouts.get(userId)); ticketTimeouts.delete(userId); } }
 
-// ========== EMBEDS Y MENÚS ==========
 function getMainEmbed(lang) {
   const isEN = lang === "en";
   return new EmbedBuilder()
@@ -397,7 +403,6 @@ function getSubMenu(options, customId, placeholder, lang) {
   );
 }
 
-// ========== FUNCIONES DE SERVICIOS (show) ==========
 async function showStreamingService(interaction, lang, serviceName) {
   const isEN = lang === "en";
   const data = lang === "en" ? dataEN : dataES;
@@ -446,10 +451,20 @@ async function showP2PCategory(interaction, lang, categoryName) {
   
   let categoryKey = categoryName;
   let displayName = categoryName;
-  if (categoryName === "Zinli") { categoryKey = "ZINLI"; displayName = "Zinli"; }
-  else if (categoryName === "PayPal") { categoryKey = "PAYPAL"; displayName = "PayPal"; }
-  else if (categoryName === "Bolívares → USDT") { categoryKey = "BOLIVARES_TO_USDT"; displayName = "Bolívares → USDT"; }
-  else if (categoryName === "USDT → Bolívares") { categoryKey = "USDT_TO_BOLIVARES"; displayName = "USDT → Bolívares"; }
+  
+  if (categoryName === "Zinli") {
+    categoryKey = "ZINLI";
+    displayName = "Zinli";
+  } else if (categoryName === "PayPal") {
+    categoryKey = "PAYPAL";
+    displayName = "PayPal";
+  } else if (categoryName === "Bolívares → USDT") {
+    categoryKey = "BOLIVARES_TO_USDT";
+    displayName = "Bolívares → USDT";
+  } else if (categoryName === "USDT → Bolívares") {
+    categoryKey = "USDT_TO_BOLIVARES";
+    displayName = "USDT → Bolívares";
+  }
   
   const category = data.p2p.categories?.[categoryKey];
   if (!category) return;
@@ -461,11 +476,17 @@ async function showP2PCategory(interaction, lang, categoryName) {
     .setColor(0x5865F2);
   
   let buyCustomId;
-  if (categoryName === "Zinli") buyCustomId = `buy_zinli_${lang}`;
-  else if (categoryName === "PayPal") buyCustomId = `buy_paypal_${lang}`;
-  else if (categoryName === "Bolívares → USDT") buyCustomId = `buy_bolivares_to_usdt_${lang}`;
-  else if (categoryName === "USDT → Bolívares") buyCustomId = `buy_usdt_to_bolivares_${lang}`;
-  else buyCustomId = `buy_p2p_${categoryKey.toLowerCase()}_${lang}`;
+  if (categoryName === "Zinli") {
+    buyCustomId = `buy_zinli_${lang}`;
+  } else if (categoryName === "PayPal") {
+    buyCustomId = `buy_paypal_${lang}`;
+  } else if (categoryName === "Bolívares → USDT") {
+    buyCustomId = `buy_bolivares_to_usdt_${lang}`;
+  } else if (categoryName === "USDT → Bolívares") {
+    buyCustomId = `buy_usdt_to_bolivares_${lang}`;
+  } else {
+    buyCustomId = `buy_p2p_${categoryKey.toLowerCase()}_${lang}`;
+  }
   
   await interaction.update({ 
     embeds: [embed], 
@@ -476,7 +497,7 @@ async function showP2PCategory(interaction, lang, categoryName) {
   });
 }
 
-// ========== MODALES (formularios) ==========
+// ========== FORMULARIOS MODALES ==========
 async function showGoldForm(interaction, lang, gameName, serverName, tipo) {
   const isEN = lang === "en";
   const modal = new ModalBuilder()
@@ -484,11 +505,46 @@ async function showGoldForm(interaction, lang, gameName, serverName, tipo) {
     .setTitle(isEN ? "💰 GOLD TRANSACTION" : "💰 TRANSACCIÓN DE ORO");
   
   modal.addComponents(
-    new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId("juego_servidor").setLabel(isEN ? "🎮 Game & Server" : "🎮 Juego y Servidor").setValue(`${gameName || ""} - ${serverName || ""}`).setStyle(TextInputStyle.Short).setRequired(true)),
-    new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId("cantidad").setLabel(isEN ? "💰 Quantity" : "💰 Cantidad").setPlaceholder(isEN ? "Ex: 500g, 10M" : "Ej: 500g, 10M").setStyle(TextInputStyle.Short).setRequired(true)),
-    new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId("faccion_personaje").setLabel(isEN ? "🏳️ Faction & Character" : "🏳️ Facción y Personaje").setPlaceholder(isEN ? "Ex: Alliance - MyCharacter" : "Ej: Alianza - MiPersonaje").setStyle(TextInputStyle.Short).setRequired(true)),
-    new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId("pago").setLabel(isEN ? "💳 Payment Method" : "💳 Método de Pago").setPlaceholder("Binance, PayPal, Zinli").setStyle(TextInputStyle.Short).setRequired(true)),
-    new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId("descripcion").setLabel(isEN ? "📝 Description" : "📝 Descripción").setPlaceholder(isEN ? "Additional details" : "Detalles adicionales").setStyle(TextInputStyle.Paragraph).setRequired(false))
+    new ActionRowBuilder().addComponents(
+      new TextInputBuilder()
+        .setCustomId("juego_servidor")
+        .setLabel(isEN ? "🎮 Game & Server" : "🎮 Juego y Servidor")
+        .setValue(`${gameName || ""} - ${serverName || ""}`)
+        .setStyle(TextInputStyle.Short)
+        .setRequired(true)
+    ),
+    new ActionRowBuilder().addComponents(
+      new TextInputBuilder()
+        .setCustomId("cantidad")
+        .setLabel(isEN ? "💰 Quantity" : "💰 Cantidad")
+        .setPlaceholder(isEN ? "Ex: 500g, 10M" : "Ej: 500g, 10M")
+        .setStyle(TextInputStyle.Short)
+        .setRequired(true)
+    ),
+    new ActionRowBuilder().addComponents(
+      new TextInputBuilder()
+        .setCustomId("faccion_personaje")
+        .setLabel(isEN ? "🏳️ Faction & Character" : "🏳️ Facción y Personaje")
+        .setPlaceholder(isEN ? "Ex: Alliance - MyCharacter" : "Ej: Alianza - MiPersonaje")
+        .setStyle(TextInputStyle.Short)
+        .setRequired(true)
+    ),
+    new ActionRowBuilder().addComponents(
+      new TextInputBuilder()
+        .setCustomId("pago")
+        .setLabel(isEN ? "💳 Payment Method" : "💳 Método de Pago")
+        .setPlaceholder("Binance, PayPal, Zinli")
+        .setStyle(TextInputStyle.Short)
+        .setRequired(true)
+    ),
+    new ActionRowBuilder().addComponents(
+      new TextInputBuilder()
+        .setCustomId("descripcion")
+        .setLabel(isEN ? "📝 Description" : "📝 Descripción")
+        .setPlaceholder(isEN ? "Additional details" : "Detalles adicionales")
+        .setStyle(TextInputStyle.Paragraph)
+        .setRequired(false)
+    )
   );
   await interaction.showModal(modal);
 }
@@ -498,11 +554,40 @@ async function showStreamingPurchaseForm(interaction, lang, serviceName) {
   const modal = new ModalBuilder()
     .setCustomId(`streaming_form_${lang}`)
     .setTitle(isEN ? `📺 ${serviceName}` : `📺 ${serviceName}`);
+  
   modal.addComponents(
-    new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId("nombre").setLabel(isEN ? "👤 Full Name" : "👤 Nombre de la persona").setPlaceholder(isEN ? "Ex: Juan Perez" : "Ej: Juan Pérez").setStyle(TextInputStyle.Short).setRequired(true)),
-    new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId("tipo_cuenta").setLabel(isEN ? "📋 Account Type" : "📋 Tipo de cuenta").setPlaceholder(isEN ? "Ex: 1 PROFILE / FULL ACCOUNT" : "Ej: 1 PERFIL / CUENTA COMPLETA").setStyle(TextInputStyle.Short).setRequired(true)),
-    new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId("plan").setLabel(isEN ? "📅 Plan (Monthly/Yearly)" : "📅 Plan (Mensual/Anual)").setPlaceholder(isEN ? "Ex: 1 MONTH / 1 YEAR" : "Ej: 1 MES / 1 AÑO").setStyle(TextInputStyle.Short).setRequired(true)),
-    new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId("descripcion").setLabel(isEN ? "📝 Description" : "📝 Descripción").setPlaceholder(isEN ? "Additional details" : "Detalles adicionales").setStyle(TextInputStyle.Paragraph).setRequired(false))
+    new ActionRowBuilder().addComponents(
+      new TextInputBuilder()
+        .setCustomId("nombre")
+        .setLabel(isEN ? "👤 Full Name" : "👤 Nombre de la persona")
+        .setPlaceholder(isEN ? "Ex: Juan Perez" : "Ej: Juan Pérez")
+        .setStyle(TextInputStyle.Short)
+        .setRequired(true)
+    ),
+    new ActionRowBuilder().addComponents(
+      new TextInputBuilder()
+        .setCustomId("tipo_cuenta")
+        .setLabel(isEN ? "📋 Account Type" : "📋 Tipo de cuenta")
+        .setPlaceholder(isEN ? "Ex: 1 PROFILE / FULL ACCOUNT" : "Ej: 1 PERFIL / CUENTA COMPLETA")
+        .setStyle(TextInputStyle.Short)
+        .setRequired(true)
+    ),
+    new ActionRowBuilder().addComponents(
+      new TextInputBuilder()
+        .setCustomId("plan")
+        .setLabel(isEN ? "📅 Plan (Monthly/Yearly)" : "📅 Plan (Mensual/Anual)")
+        .setPlaceholder(isEN ? "Ex: 1 MONTH / 1 YEAR" : "Ej: 1 MES / 1 AÑO")
+        .setStyle(TextInputStyle.Short)
+        .setRequired(true)
+    ),
+    new ActionRowBuilder().addComponents(
+      new TextInputBuilder()
+        .setCustomId("descripcion")
+        .setLabel(isEN ? "📝 Description" : "📝 Descripción")
+        .setPlaceholder(isEN ? "Additional details" : "Detalles adicionales")
+        .setStyle(TextInputStyle.Paragraph)
+        .setRequired(false)
+    )
   );
   await interaction.showModal(modal);
 }
@@ -512,103 +597,353 @@ async function showGiftCardPurchaseForm(interaction, lang, cardName) {
   const modal = new ModalBuilder()
     .setCustomId(`giftcard_form_${lang}`)
     .setTitle(isEN ? `🎁 ${cardName}` : `🎁 ${cardName}`);
+  
   modal.addComponents(
-    new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId("nombre").setLabel(isEN ? "👤 Full Name" : "👤 Nombre de la persona").setPlaceholder(isEN ? "Ex: Juan Perez" : "Ej: Juan Pérez").setStyle(TextInputStyle.Short).setRequired(true)),
-    new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId("nombre_giftcard").setLabel(isEN ? "🎁 Gift Card Name" : "🎁 Nombre de la Gift Card").setValue(cardName).setStyle(TextInputStyle.Short).setRequired(true)),
-    new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId("monto").setLabel(isEN ? "💰 Amount in USD" : "💰 Cantidad en USD").setPlaceholder(isEN ? "Ex: 10$, 20$, 50$" : "Ej: 10$, 20$, 50$").setStyle(TextInputStyle.Short).setRequired(true)),
-    new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId("descripcion").setLabel(isEN ? "📝 Description" : "📝 Descripción").setPlaceholder(isEN ? "Additional details" : "Detalles adicionales").setStyle(TextInputStyle.Paragraph).setRequired(false))
+    new ActionRowBuilder().addComponents(
+      new TextInputBuilder()
+        .setCustomId("nombre")
+        .setLabel(isEN ? "👤 Full Name" : "👤 Nombre de la persona")
+        .setPlaceholder(isEN ? "Ex: Juan Perez" : "Ej: Juan Pérez")
+        .setStyle(TextInputStyle.Short)
+        .setRequired(true)
+    ),
+    new ActionRowBuilder().addComponents(
+      new TextInputBuilder()
+        .setCustomId("nombre_giftcard")
+        .setLabel(isEN ? "🎁 Gift Card Name" : "🎁 Nombre de la Gift Card")
+        .setValue(cardName)
+        .setStyle(TextInputStyle.Short)
+        .setRequired(true)
+    ),
+    new ActionRowBuilder().addComponents(
+      new TextInputBuilder()
+        .setCustomId("monto")
+        .setLabel(isEN ? "💰 Amount in USD" : "💰 Cantidad en USD")
+        .setPlaceholder(isEN ? "Ex: 10$, 20$, 50$" : "Ej: 10$, 20$, 50$")
+        .setStyle(TextInputStyle.Short)
+        .setRequired(true)
+    ),
+    new ActionRowBuilder().addComponents(
+      new TextInputBuilder()
+        .setCustomId("descripcion")
+        .setLabel(isEN ? "📝 Description" : "📝 Descripción")
+        .setPlaceholder(isEN ? "Additional details" : "Detalles adicionales")
+        .setStyle(TextInputStyle.Paragraph)
+        .setRequired(false)
+    )
   );
   await interaction.showModal(modal);
 }
 
 async function showZinliForm(interaction, lang) {
   const isEN = lang === "en";
-  const modal = new ModalBuilder().setCustomId(`zinli_form_${lang}`).setTitle(isEN ? "💳 ZINLI TRANSACTION" : "💳 TRANSACCIÓN ZINLI");
+  const modal = new ModalBuilder()
+    .setCustomId(`zinli_form_${lang}`)
+    .setTitle(isEN ? "💳 ZINLI TRANSACTION" : "💳 TRANSACCIÓN ZINLI");
+  
   modal.addComponents(
-    new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId("nombre").setLabel(isEN ? "👤 Full Name" : "👤 Nombre de la persona").setPlaceholder(isEN ? "Ex: Juan Perez" : "Ej: Juan Pérez").setStyle(TextInputStyle.Short).setRequired(true)),
-    new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId("monto").setLabel(isEN ? "💰 Amount in USD" : "💰 Cantidad a cambiar en USD").setPlaceholder(isEN ? "Ex: 10$" : "Ej: 10$").setStyle(TextInputStyle.Short).setRequired(true)),
-    new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId("descripcion").setLabel(isEN ? "📝 Description" : "📝 Descripción").setPlaceholder(isEN ? "Additional details" : "Detalles adicionales").setStyle(TextInputStyle.Paragraph).setRequired(false))
+    new ActionRowBuilder().addComponents(
+      new TextInputBuilder()
+        .setCustomId("nombre")
+        .setLabel(isEN ? "👤 Full Name" : "👤 Nombre de la persona")
+        .setPlaceholder(isEN ? "Ex: Juan Perez" : "Ej: Juan Pérez")
+        .setStyle(TextInputStyle.Short)
+        .setRequired(true)
+    ),
+    new ActionRowBuilder().addComponents(
+      new TextInputBuilder()
+        .setCustomId("monto")
+        .setLabel(isEN ? "💰 Amount in USD" : "💰 Cantidad a cambiar en USD")
+        .setPlaceholder(isEN ? "Ex: 10$" : "Ej: 10$")
+        .setStyle(TextInputStyle.Short)
+        .setRequired(true)
+    ),
+    new ActionRowBuilder().addComponents(
+      new TextInputBuilder()
+        .setCustomId("descripcion")
+        .setLabel(isEN ? "📝 Description" : "📝 Descripción")
+        .setPlaceholder(isEN ? "Additional details" : "Detalles adicionales")
+        .setStyle(TextInputStyle.Paragraph)
+        .setRequired(false)
+    )
   );
   await interaction.showModal(modal);
 }
 
 async function showPayPalForm(interaction, lang) {
   const isEN = lang === "en";
-  const modal = new ModalBuilder().setCustomId(`paypal_form_${lang}`).setTitle(isEN ? "💳 PAYPAL TRANSACTION" : "💳 TRANSACCIÓN PAYPAL");
+  const modal = new ModalBuilder()
+    .setCustomId(`paypal_form_${lang}`)
+    .setTitle(isEN ? "💳 PAYPAL TRANSACTION" : "💳 TRANSACCIÓN PAYPAL");
+  
   modal.addComponents(
-    new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId("nombre").setLabel(isEN ? "👤 Full Name" : "👤 Nombre de la persona").setPlaceholder(isEN ? "Ex: Juan Perez" : "Ej: Juan Pérez").setStyle(TextInputStyle.Short).setRequired(true)),
-    new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId("monto").setLabel(isEN ? "💰 Amount in USD" : "💰 Cantidad a cambiar en USD").setPlaceholder(isEN ? "Ex: 10$" : "Ej: 10$").setStyle(TextInputStyle.Short).setRequired(true)),
-    new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId("descripcion").setLabel(isEN ? "📝 Description" : "📝 Descripción").setPlaceholder(isEN ? "Additional details" : "Detalles adicionales").setStyle(TextInputStyle.Paragraph).setRequired(false))
+    new ActionRowBuilder().addComponents(
+      new TextInputBuilder()
+        .setCustomId("nombre")
+        .setLabel(isEN ? "👤 Full Name" : "👤 Nombre de la persona")
+        .setPlaceholder(isEN ? "Ex: Juan Perez" : "Ej: Juan Pérez")
+        .setStyle(TextInputStyle.Short)
+        .setRequired(true)
+    ),
+    new ActionRowBuilder().addComponents(
+      new TextInputBuilder()
+        .setCustomId("monto")
+        .setLabel(isEN ? "💰 Amount in USD" : "💰 Cantidad a cambiar en USD")
+        .setPlaceholder(isEN ? "Ex: 10$" : "Ej: 10$")
+        .setStyle(TextInputStyle.Short)
+        .setRequired(true)
+    ),
+    new ActionRowBuilder().addComponents(
+      new TextInputBuilder()
+        .setCustomId("descripcion")
+        .setLabel(isEN ? "📝 Description" : "📝 Descripción")
+        .setPlaceholder(isEN ? "Additional details" : "Detalles adicionales")
+        .setStyle(TextInputStyle.Paragraph)
+        .setRequired(false)
+    )
   );
   await interaction.showModal(modal);
 }
 
 async function showBolivaresToUSDTForm(interaction, lang) {
   const isEN = lang === "en";
-  const modal = new ModalBuilder().setCustomId(`bolivares_to_usdt_form_${lang}`).setTitle(isEN ? "🇻🇪 BOLÍVARES → USDT" : "🇻🇪 BOLÍVARES → USDT");
+  const modal = new ModalBuilder()
+    .setCustomId(`bolivares_to_usdt_form_${lang}`)
+    .setTitle(isEN ? "🇻🇪 BOLÍVARES → USDT" : "🇻🇪 BOLÍVARES → USDT");
+  
   modal.addComponents(
-    new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId("nombre").setLabel(isEN ? "👤 Full Name" : "👤 Nombre de la persona").setPlaceholder(isEN ? "Ex: Juan Perez" : "Ej: Juan Pérez").setStyle(TextInputStyle.Short).setRequired(true)),
-    new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId("monto_bs").setLabel(isEN ? "💰 Amount in Bolívares (BS)" : "💰 Cantidad a cambiar en Bolívares (BS)").setPlaceholder(isEN ? "Ex: 1000 BS" : "Ej: 1000 BS").setStyle(TextInputStyle.Short).setRequired(true)),
-    new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId("descripcion").setLabel(isEN ? "📝 Description / Send to" : "📝 Descripción / Enviar a").setPlaceholder(isEN ? "Ex: USDT wallet address" : "Ej: Dirección de billetera USDT").setStyle(TextInputStyle.Paragraph).setRequired(false))
+    new ActionRowBuilder().addComponents(
+      new TextInputBuilder()
+        .setCustomId("nombre")
+        .setLabel(isEN ? "👤 Full Name" : "👤 Nombre de la persona")
+        .setPlaceholder(isEN ? "Ex: Juan Perez" : "Ej: Juan Pérez")
+        .setStyle(TextInputStyle.Short)
+        .setRequired(true)
+    ),
+    new ActionRowBuilder().addComponents(
+      new TextInputBuilder()
+        .setCustomId("monto_bs")
+        .setLabel(isEN ? "💰 Amount in Bolívares (BS)" : "💰 Cantidad a cambiar en Bolívares (BS)")
+        .setPlaceholder(isEN ? "Ex: 1000 BS" : "Ej: 1000 BS")
+        .setStyle(TextInputStyle.Short)
+        .setRequired(true)
+    ),
+    new ActionRowBuilder().addComponents(
+      new TextInputBuilder()
+        .setCustomId("descripcion")
+        .setLabel(isEN ? "📝 Description / Send to" : "📝 Descripción / Enviar a")
+        .setPlaceholder(isEN ? "Ex: USDT wallet address" : "Ej: Dirección de billetera USDT")
+        .setStyle(TextInputStyle.Paragraph)
+        .setRequired(false)
+    )
   );
   await interaction.showModal(modal);
 }
 
 async function showUSDTToBolivaresForm(interaction, lang) {
   const isEN = lang === "en";
-  const modal = new ModalBuilder().setCustomId(`usdt_to_bolivares_form_${lang}`).setTitle(isEN ? "🇻🇪 USDT → BOLÍVARES" : "🇻🇪 USDT → BOLÍVARES");
+  const modal = new ModalBuilder()
+    .setCustomId(`usdt_to_bolivares_form_${lang}`)
+    .setTitle(isEN ? "🇻🇪 USDT → BOLÍVARES" : "🇻🇪 USDT → BOLÍVARES");
+  
   modal.addComponents(
-    new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId("nombre").setLabel(isEN ? "👤 Full Name" : "👤 Nombre de la persona").setPlaceholder(isEN ? "Ex: Juan Perez" : "Ej: Juan Pérez").setStyle(TextInputStyle.Short).setRequired(true)),
-    new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId("monto_usdt").setLabel(isEN ? "💰 Amount in USDT" : "💰 Cantidad a cambiar en USDT").setPlaceholder(isEN ? "Ex: 100 USDT" : "Ej: 100 USDT").setStyle(TextInputStyle.Short).setRequired(true)),
-    new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId("descripcion").setLabel(isEN ? "📝 Description / Send to" : "📝 Descripción / Enviar a").setPlaceholder(isEN ? "Ex: BS bank account" : "Ej: Cuenta bancaria BS").setStyle(TextInputStyle.Paragraph).setRequired(false))
+    new ActionRowBuilder().addComponents(
+      new TextInputBuilder()
+        .setCustomId("nombre")
+        .setLabel(isEN ? "👤 Full Name" : "👤 Nombre de la persona")
+        .setPlaceholder(isEN ? "Ex: Juan Perez" : "Ej: Juan Pérez")
+        .setStyle(TextInputStyle.Short)
+        .setRequired(true)
+    ),
+    new ActionRowBuilder().addComponents(
+      new TextInputBuilder()
+        .setCustomId("monto_usdt")
+        .setLabel(isEN ? "💰 Amount in USDT" : "💰 Cantidad a cambiar en USDT")
+        .setPlaceholder(isEN ? "Ex: 100 USDT" : "Ej: 100 USDT")
+        .setStyle(TextInputStyle.Short)
+        .setRequired(true)
+    ),
+    new ActionRowBuilder().addComponents(
+      new TextInputBuilder()
+        .setCustomId("descripcion")
+        .setLabel(isEN ? "📝 Description / Send to" : "📝 Descripción / Enviar a")
+        .setPlaceholder(isEN ? "Ex: BS bank account" : "Ej: Cuenta bancaria BS")
+        .setStyle(TextInputStyle.Paragraph)
+        .setRequired(false)
+    )
   );
   await interaction.showModal(modal);
 }
 
 async function showWowGTForm(interaction, lang) {
   const isEN = lang === "en";
-  const modal = new ModalBuilder().setCustomId(`wowgt_form_${lang}`).setTitle(isEN ? "🕒 WOW GAME TIME" : "🕒 TIEMPO DE JUEGO WOW");
+  const modal = new ModalBuilder()
+    .setCustomId(`wowgt_form_${lang}`)
+    .setTitle(isEN ? "🕒 WOW GAME TIME" : "🕒 TIEMPO DE JUEGO WOW");
+  
   modal.addComponents(
-    new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId("nombre").setLabel(isEN ? "👤 Full Name" : "👤 Nombre de la persona").setPlaceholder(isEN ? "Ex: Juan Perez" : "Ej: Juan Pérez").setStyle(TextInputStyle.Short).setRequired(true)),
-    new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId("monto").setLabel(isEN ? "💰 Amount" : "💰 Monto").setPlaceholder("28$").setStyle(TextInputStyle.Short).setRequired(true)),
-    new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId("descripcion").setLabel(isEN ? "📝 Description" : "📝 Descripción").setPlaceholder(isEN ? "Additional details" : "Detalles adicionales").setStyle(TextInputStyle.Paragraph).setRequired(false))
+    new ActionRowBuilder().addComponents(
+      new TextInputBuilder()
+        .setCustomId("nombre")
+        .setLabel(isEN ? "👤 Full Name" : "👤 Nombre de la persona")
+        .setPlaceholder(isEN ? "Ex: Juan Perez" : "Ej: Juan Pérez")
+        .setStyle(TextInputStyle.Short)
+        .setRequired(true)
+    ),
+    new ActionRowBuilder().addComponents(
+      new TextInputBuilder()
+        .setCustomId("monto")
+        .setLabel(isEN ? "💰 Amount" : "💰 Monto")
+        .setPlaceholder("28$")
+        .setStyle(TextInputStyle.Short)
+        .setRequired(true)
+    ),
+    new ActionRowBuilder().addComponents(
+      new TextInputBuilder()
+        .setCustomId("descripcion")
+        .setLabel(isEN ? "📝 Description" : "📝 Descripción")
+        .setPlaceholder(isEN ? "Additional details" : "Detalles adicionales")
+        .setStyle(TextInputStyle.Paragraph)
+        .setRequired(false)
+    )
   );
   await interaction.showModal(modal);
 }
 
 async function showOtherForm(interaction, lang) {
   const isEN = lang === "en";
-  const modal = new ModalBuilder().setCustomId(`other_form_${lang}`).setTitle(isEN ? "❓ OTHER REQUEST" : "❓ OTRA SOLICITUD");
+  const modal = new ModalBuilder()
+    .setCustomId(`other_form_${lang}`)
+    .setTitle(isEN ? "❓ OTHER REQUEST" : "❓ OTRA SOLICITUD");
+  
   modal.addComponents(
-    new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId("consulta").setLabel(isEN ? "📝 Request" : "📝 Solicitud").setPlaceholder(isEN ? "Describe your request" : "Describe tu solicitud").setStyle(TextInputStyle.Paragraph).setRequired(true)),
-    new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId("contacto").setLabel(isEN ? "📞 Contact" : "📞 Contacto").setPlaceholder(isEN ? "Your Discord" : "Tu Discord").setStyle(TextInputStyle.Short).setRequired(false)),
-    new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId("descripcion").setLabel(isEN ? "📝 Description" : "📝 Descripción").setPlaceholder(isEN ? "More details" : "Más detalles").setStyle(TextInputStyle.Paragraph).setRequired(false))
+    new ActionRowBuilder().addComponents(
+      new TextInputBuilder()
+        .setCustomId("consulta")
+        .setLabel(isEN ? "📝 Request" : "📝 Solicitud")
+        .setPlaceholder(isEN ? "Describe your request" : "Describe tu solicitud")
+        .setStyle(TextInputStyle.Paragraph)
+        .setRequired(true)
+    ),
+    new ActionRowBuilder().addComponents(
+      new TextInputBuilder()
+        .setCustomId("contacto")
+        .setLabel(isEN ? "📞 Contact" : "📞 Contacto")
+        .setPlaceholder(isEN ? "Your Discord" : "Tu Discord")
+        .setStyle(TextInputStyle.Short)
+        .setRequired(false)
+    ),
+    new ActionRowBuilder().addComponents(
+      new TextInputBuilder()
+        .setCustomId("descripcion")
+        .setLabel(isEN ? "📝 Description" : "📝 Descripción")
+        .setPlaceholder(isEN ? "More details" : "Más detalles")
+        .setStyle(TextInputStyle.Paragraph)
+        .setRequired(false)
+    )
   );
   await interaction.showModal(modal);
 }
 
+// ========== MODALES DE BOOSTING (AGREGADOS CORRECTAMENTE) ==========
 async function showLevelingForm(interaction, lang) {
   const isEN = lang === "en";
-  const modal = new ModalBuilder().setCustomId(`leveling_form_${lang}`).setTitle(isEN ? "📈 LEVELING SERVICE" : "📈 SERVICIO DE LEVELING");
+  const modal = new ModalBuilder()
+    .setCustomId(`leveling_form_${lang}`)
+    .setTitle(isEN ? "📈 LEVELING SERVICE" : "📈 SERVICIO DE LEVELING");
+  
   modal.addComponents(
-    new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId("juego_servidor").setLabel(isEN ? "🎮 Game & Server" : "🎮 Juego y Servidor").setPlaceholder(isEN ? "Ex: WoW TBC - Nightslayer" : "Ej: WoW TBC - Nightslayer").setStyle(TextInputStyle.Short).setRequired(true)),
-    new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId("clase_faccion").setLabel(isEN ? "🏳️ Class/Faction" : "🏳️ Clase/Facción").setPlaceholder(isEN ? "Ex: Warrior / Alliance" : "Ej: Guerrero / Alianza").setStyle(TextInputStyle.Short).setRequired(true)),
-    new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId("niveles").setLabel(isEN ? "📊 Current → Desired Level" : "📊 Nivel actual → Deseado").setPlaceholder(isEN ? "Ex: 1 → 60" : "Ej: 1 → 60").setStyle(TextInputStyle.Short).setRequired(true)),
-    new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId("personaje_pago").setLabel(isEN ? "👤 Character & Payment" : "👤 Personaje y Pago").setPlaceholder(isEN ? "Ex: MyCharacter - Binance" : "Ej: MiPersonaje - Binance").setStyle(TextInputStyle.Short).setRequired(true)),
-    new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId("descripcion").setLabel(isEN ? "📝 Description" : "📝 Descripción").setPlaceholder(isEN ? "Special requests, notes" : "Requisitos especiales").setStyle(TextInputStyle.Paragraph).setRequired(false))
+    new ActionRowBuilder().addComponents(
+      new TextInputBuilder()
+        .setCustomId("juego_servidor")
+        .setLabel(isEN ? "🎮 Game & Server" : "🎮 Juego y Servidor")
+        .setPlaceholder(isEN ? "Ex: WoW TBC - Nightslayer" : "Ej: WoW TBC - Nightslayer")
+        .setStyle(TextInputStyle.Short)
+        .setRequired(true)
+    ),
+    new ActionRowBuilder().addComponents(
+      new TextInputBuilder()
+        .setCustomId("clase_faccion")
+        .setLabel(isEN ? "🏳️ Class/Faction" : "🏳️ Clase/Facción")
+        .setPlaceholder(isEN ? "Ex: Warrior / Alliance" : "Ej: Guerrero / Alianza")
+        .setStyle(TextInputStyle.Short)
+        .setRequired(true)
+    ),
+    new ActionRowBuilder().addComponents(
+      new TextInputBuilder()
+        .setCustomId("niveles")
+        .setLabel(isEN ? "📊 Current → Desired Level" : "📊 Nivel actual → Deseado")
+        .setPlaceholder(isEN ? "Ex: 1 → 60" : "Ej: 1 → 60")
+        .setStyle(TextInputStyle.Short)
+        .setRequired(true)
+    ),
+    new ActionRowBuilder().addComponents(
+      new TextInputBuilder()
+        .setCustomId("personaje_pago")
+        .setLabel(isEN ? "👤 Character & Payment" : "👤 Personaje y Pago")
+        .setPlaceholder(isEN ? "Ex: MyCharacter - Binance" : "Ej: MiPersonaje - Binance")
+        .setStyle(TextInputStyle.Short)
+        .setRequired(true)
+    ),
+    new ActionRowBuilder().addComponents(
+      new TextInputBuilder()
+        .setCustomId("descripcion")
+        .setLabel(isEN ? "📝 Description" : "📝 Descripción")
+        .setPlaceholder(isEN ? "Special requests, notes" : "Requisitos especiales")
+        .setStyle(TextInputStyle.Paragraph)
+        .setRequired(false)
+    )
   );
   await interaction.showModal(modal);
 }
 
 async function showProfessionsForm(interaction, lang) {
   const isEN = lang === "en";
-  const modal = new ModalBuilder().setCustomId(`professions_form_${lang}`).setTitle(isEN ? "⚙️ PROFESSIONS SERVICE" : "⚙️ SERVICIO DE PROFESIONES");
+  const modal = new ModalBuilder()
+    .setCustomId(`professions_form_${lang}`)
+    .setTitle(isEN ? "⚙️ PROFESSIONS SERVICE" : "⚙️ SERVICIO DE PROFESIONES");
+  
   modal.addComponents(
-    new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId("juego_servidor").setLabel(isEN ? "🎮 Game & Server" : "🎮 Juego y Servidor").setPlaceholder(isEN ? "Ex: WoW TBC - Nightslayer" : "Ej: WoW TBC - Nightslayer").setStyle(TextInputStyle.Short).setRequired(true)),
-    new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId("profesiones").setLabel(isEN ? "⚙️ Profession(s)" : "⚙️ Profesión(es)").setPlaceholder(isEN ? "Ex: Mining, Herbalism" : "Ej: Minería, Herboristería").setStyle(TextInputStyle.Short).setRequired(true)),
-    new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId("niveles").setLabel(isEN ? "📊 Current → Desired Level" : "📊 Nivel actual → Deseado").setPlaceholder(isEN ? "Ex: 1 → 300" : "Ej: 1 → 300").setStyle(TextInputStyle.Short).setRequired(true)),
-    new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId("personaje_pago").setLabel(isEN ? "👤 Character & Payment" : "👤 Personaje y Pago").setPlaceholder(isEN ? "Ex: MyCharacter - Binance" : "Ej: MiPersonaje - Binance").setStyle(TextInputStyle.Short).setRequired(true)),
-    new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId("descripcion").setLabel(isEN ? "📝 Description" : "📝 Descripción").setPlaceholder(isEN ? "Special requests, notes" : "Requisitos especiales").setStyle(TextInputStyle.Paragraph).setRequired(false))
+    new ActionRowBuilder().addComponents(
+      new TextInputBuilder()
+        .setCustomId("juego_servidor")
+        .setLabel(isEN ? "🎮 Game & Server" : "🎮 Juego y Servidor")
+        .setPlaceholder(isEN ? "Ex: WoW TBC - Nightslayer" : "Ej: WoW TBC - Nightslayer")
+        .setStyle(TextInputStyle.Short)
+        .setRequired(true)
+    ),
+    new ActionRowBuilder().addComponents(
+      new TextInputBuilder()
+        .setCustomId("profesiones")
+        .setLabel(isEN ? "⚙️ Profession(s)" : "⚙️ Profesión(es)")
+        .setPlaceholder(isEN ? "Ex: Mining, Herbalism" : "Ej: Minería, Herboristería")
+        .setStyle(TextInputStyle.Short)
+        .setRequired(true)
+    ),
+    new ActionRowBuilder().addComponents(
+      new TextInputBuilder()
+        .setCustomId("niveles")
+        .setLabel(isEN ? "📊 Current → Desired Level" : "📊 Nivel actual → Deseado")
+        .setPlaceholder(isEN ? "Ex: 1 → 300" : "Ej: 1 → 300")
+        .setStyle(TextInputStyle.Short)
+        .setRequired(true)
+    ),
+    new ActionRowBuilder().addComponents(
+      new TextInputBuilder()
+        .setCustomId("personaje_pago")
+        .setLabel(isEN ? "👤 Character & Payment" : "👤 Personaje y Pago")
+        .setPlaceholder(isEN ? "Ex: MyCharacter - Binance" : "Ej: MiPersonaje - Binance")
+        .setStyle(TextInputStyle.Short)
+        .setRequired(true)
+    ),
+    new ActionRowBuilder().addComponents(
+      new TextInputBuilder()
+        .setCustomId("descripcion")
+        .setLabel(isEN ? "📝 Description" : "📝 Descripción")
+        .setPlaceholder(isEN ? "Special requests, notes" : "Requisitos especiales")
+        .setStyle(TextInputStyle.Paragraph)
+        .setRequired(false)
+    )
   );
   await interaction.showModal(modal);
 }
@@ -701,7 +1036,7 @@ async function registerCommands() {
   } catch (error) { console.error("Error al registrar comandos:", error); }
 }
 
-// ========== KEEP ALIVE Y SERVIDOR WEB ==========
+// ========== KEEP ALIVE ==========
 let keepAliveInterval;
 function startKeepAlive() {
   keepAliveInterval = setInterval(() => {
@@ -711,10 +1046,12 @@ function startKeepAlive() {
     }
   }, 240000);
 }
+
 function stopKeepAlive() {
   if (keepAliveInterval) clearInterval(keepAliveInterval);
 }
 
+// ========== MANEJAR ERRORES NO CAPTURADOS ==========
 process.on('unhandledRejection', (error) => {
   console.error('❌ Error no capturado:', error);
 });
@@ -727,10 +1064,7 @@ client.once(Events.ClientReady, async () => {
   startKeepAlive();
 });
 
-// ========== MANEJADOR PRINCIPAL DE INTERACCIONES ==========
 client.on(Events.InteractionCreate, async (interaction) => {
-  console.log(`[${new Date().toISOString()}] INTERACCIÓN: tipo=${interaction.type}, customId=${interaction.customId}, canal=${interaction.channelId}`);
-
   let lang = "es";
   if (interaction.customId && interaction.customId.endsWith("_en")) lang = "en";
   else if (interaction.channelId === ID_CANAL_TICKET_EN) lang = "en";
@@ -741,61 +1075,63 @@ client.on(Events.InteractionCreate, async (interaction) => {
     // ========== COMANDOS SLASH ==========
     if (interaction.isCommand()) {
       await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+      
       if (!interaction.member.permissions.has(PermissionsBitField.Flags.Administrator)) {
         await interaction.editReply({ content: isEN ? "❌ No permission" : "❌ Sin permisos" });
         return;
       }
+      
       const channel = await client.channels.fetch(interaction.channelId);
-      switch (interaction.commandName) {
-        case "menu_es":
-          await channel.send({ embeds: [getMainEmbed("es")], components: [getMainMenu("es")] });
-          await interaction.editReply({ content: "✅ Menú enviado" });
-          break;
-        case "menu_en":
-          await channel.send({ embeds: [getMainEmbed("en")], components: [getMainMenu("en")] });
-          await interaction.editReply({ content: "✅ Menu sent" });
-          break;
-        case "ticket_es":
-          const ticketChannelES = await client.channels.fetch(ID_CANAL_TICKET_ES);
-          originalTicketMessageES = await ticketChannelES.send({ embeds: [getTicketEmbed("es")], components: [getTicketButton("es")] });
-          await interaction.editReply({ content: "✅ Ticket enviado" });
-          break;
-        case "ticket_en":
-          const ticketChannelEN = await client.channels.fetch(ID_CANAL_TICKET_EN);
-          originalTicketMessageEN = await ticketChannelEN.send({ embeds: [getTicketEmbed("en")], components: [getTicketButton("en")] });
-          await interaction.editReply({ content: "✅ Ticket sent" });
-          break;
-        case "redes":
-          const ch1 = await client.channels.fetch(ID_CANAL_REDES_1);
-          const ch2 = await client.channels.fetch(ID_CANAL_REDES_2);
-          if (ch1) await ch1.send({ embeds: [getRedesEmbed("es")], components: [getRedesButtons("es")] });
-          if (ch2) await ch2.send({ embeds: [getRedesEmbed("en")], components: [getRedesButtons("en")] });
-          await interaction.editReply({ content: "✅ Redes enviadas" });
-          break;
-        case "reload_es":
-          if (reloadData("es")) await interaction.editReply({ content: "✅ Recargado" });
-          else await interaction.editReply({ content: "❌ Error" });
-          break;
-        case "reload_en":
-          if (reloadData("en")) await interaction.editReply({ content: "✅ Reloaded" });
-          else await interaction.editReply({ content: "❌ Error" });
-          break;
+      if (interaction.commandName === "menu_es") {
+        await channel.send({ embeds: [getMainEmbed("es")], components: [getMainMenu("es")] });
+        await interaction.editReply({ content: "✅ Menú enviado" });
+      }
+      if (interaction.commandName === "menu_en") {
+        await channel.send({ embeds: [getMainEmbed("en")], components: [getMainMenu("en")] });
+        await interaction.editReply({ content: "✅ Menu sent" });
+      }
+      if (interaction.commandName === "ticket_es") {
+        const ticketChannel = await client.channels.fetch(ID_CANAL_TICKET_ES);
+        const msg = await ticketChannel.send({ embeds: [getTicketEmbed("es")], components: [getTicketButton("es")] });
+        originalTicketMessageES = msg;
+        await interaction.editReply({ content: "✅ Ticket enviado" });
+      }
+      if (interaction.commandName === "ticket_en") {
+        const ticketChannel = await client.channels.fetch(ID_CANAL_TICKET_EN);
+        const msg = await ticketChannel.send({ embeds: [getTicketEmbed("en")], components: [getTicketButton("en")] });
+        originalTicketMessageEN = msg;
+        await interaction.editReply({ content: "✅ Ticket sent" });
+      }
+      if (interaction.commandName === "redes") {
+        const ch1 = await client.channels.fetch(ID_CANAL_REDES_1);
+        const ch2 = await client.channels.fetch(ID_CANAL_REDES_2);
+        if (ch1) await ch1.send({ embeds: [getRedesEmbed("es")], components: [getRedesButtons("es")] });
+        if (ch2) await ch2.send({ embeds: [getRedesEmbed("en")], components: [getRedesButtons("en")] });
+        await interaction.editReply({ content: "✅ Redes enviadas" });
+      }
+      if (interaction.commandName === "reload_es") {
+        if (reloadData("es")) await interaction.editReply({ content: "✅ Recargado" });
+        else await interaction.editReply({ content: "❌ Error" });
+      }
+      if (interaction.commandName === "reload_en") {
+        if (reloadData("en")) await interaction.editReply({ content: "✅ Reloaded" });
+        else await interaction.editReply({ content: "❌ Error" });
       }
       return;
     }
 
-    // ========== DEFER UPDATE PARA MENÚS (excepto boost type) ==========
-    if (interaction.isStringSelectMenu() && 
-        interaction.customId !== `boost_type_menu_${lang}` && 
-        interaction.customId !== `ticket_boost_type_menu_${lang}`) {
+    // ========== DEFER UPDATE PARA TODOS LOS MENÚS (como estaba originalmente) ==========
+    if (interaction.isStringSelectMenu()) {
       if (!interaction.deferred && !interaction.replied) {
         await interaction.deferUpdate().catch(() => {});
       }
     }
 
-    // ========== BOTÓN DE ABRIR TICKET ==========
+    // ========== ABRIR TICKET ==========
     if (interaction.isButton() && interaction.customId === `open_ticket_${lang}`) {
-      if (!interaction.deferred && !interaction.replied) await interaction.deferUpdate();
+      if (!interaction.deferred && !interaction.replied) {
+        await interaction.deferUpdate();
+      }
       const existingTicket = await hasOpenTicket(interaction.guild, interaction.user.username);
       if (existingTicket) {
         await interaction.followUp({ content: isEN ? `❌ You have a ticket: ${existingTicket}` : `❌ Ya tienes un ticket: ${existingTicket}`, flags: MessageFlags.Ephemeral });
@@ -808,20 +1144,29 @@ client.on(Events.InteractionCreate, async (interaction) => {
 
     // ========== BOTONES VOLVER ==========
     if (interaction.isButton() && (interaction.customId === `back_marketplace_${lang}` || interaction.customId === `back_ticket_${lang}` || interaction.customId === `back_${lang}` || interaction.customId === `back_streaming_${lang}` || interaction.customId === `back_giftcards_${lang}` || interaction.customId === `back_p2p_${lang}`)) {
-      if (!interaction.deferred && !interaction.replied) await interaction.deferUpdate();
+      if (!interaction.deferred && !interaction.replied) {
+        await interaction.deferUpdate();
+      }
       cancelReset(interaction.user.id);
       cancelCategoryReset(interaction.user.id);
+      
       if (interaction.customId === `back_marketplace_${lang}`) {
         await interaction.editReply({ 
           embeds: [new EmbedBuilder().setTitle(isEN ? "🛒 MARKETPLACE" : "🛒 MARKETPLACE").setDescription(isEN ? "Select a game to see its rates." : "Selecciona un juego para ver sus tasas.").setColor(0x000000)], 
           components: [getMarketplaceMenu(lang), new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId(`back_${lang}`).setLabel(isEN ? "⬅️ BACK" : "⬅️ VOLVER").setStyle(ButtonStyle.Secondary))] 
         });
-      } else if (interaction.customId === `back_ticket_${lang}`) {
+        return;
+      }
+      if (interaction.customId === `back_ticket_${lang}`) {
         cancelTicketReset(interaction.user.id);
         await interaction.editReply({ embeds: [getTicketEmbed(lang)], components: [getTicketButton(lang)] });
-      } else if (interaction.customId === `back_${lang}`) {
+        return;
+      }
+      if (interaction.customId === `back_${lang}`) {
         await interaction.editReply({ embeds: [getMainEmbed(lang)], components: [getMainMenu(lang)] });
-      } else if (interaction.customId === `back_streaming_${lang}`) {
+        return;
+      }
+      if (interaction.customId === `back_streaming_${lang}`) {
         const isTicket = interaction.message.embeds[0]?.color === 0x5865F2;
         const embedColor = isTicket ? 0x5865F2 : 0x000000;
         const backButtonId = isTicket ? `back_ticket_${lang}` : `back_${lang}`;
@@ -829,7 +1174,9 @@ client.on(Events.InteractionCreate, async (interaction) => {
           embeds: [new EmbedBuilder().setTitle(isEN ? "📺 STREAMING SERVICES" : "📺 SERVICIOS DE STREAMING").setDescription(isEN ? "Select a service:" : "Selecciona un servicio:").setColor(embedColor)], 
           components: [getStreamingServicesMenu(lang), new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId(backButtonId).setLabel(isEN ? "⬅️ BACK" : "⬅️ VOLVER").setStyle(ButtonStyle.Secondary))] 
         });
-      } else if (interaction.customId === `back_giftcards_${lang}`) {
+        return;
+      }
+      if (interaction.customId === `back_giftcards_${lang}`) {
         const isTicket = interaction.message.embeds[0]?.color === 0x5865F2;
         const embedColor = isTicket ? 0x5865F2 : 0x000000;
         const backButtonId = isTicket ? `back_ticket_${lang}` : `back_${lang}`;
@@ -837,7 +1184,9 @@ client.on(Events.InteractionCreate, async (interaction) => {
           embeds: [new EmbedBuilder().setTitle(isEN ? "🎁 GIFT CARDS" : "🎁 TARJETAS").setDescription(isEN ? "Select a gift card:" : "Selecciona una tarjeta:").setColor(embedColor)], 
           components: [getGiftCardsMenu(lang), new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId(backButtonId).setLabel(isEN ? "⬅️ BACK" : "⬅️ VOLVER").setStyle(ButtonStyle.Secondary))] 
         });
-      } else if (interaction.customId === `back_p2p_${lang}`) {
+        return;
+      }
+      if (interaction.customId === `back_p2p_${lang}`) {
         const isTicket = interaction.message.embeds[0]?.color === 0x5865F2;
         const embedColor = isTicket ? 0x5865F2 : 0x000000;
         const backButtonId = isTicket ? `back_ticket_${lang}` : `back_${lang}`;
@@ -845,8 +1194,8 @@ client.on(Events.InteractionCreate, async (interaction) => {
           embeds: [new EmbedBuilder().setTitle(isEN ? "💳 P2P EXCHANGE" : "💳 CAMBIO P2P").setDescription(isEN ? "Select a method:" : "Selecciona un método:").setColor(embedColor)], 
           components: [getP2PCategoriesMenu(lang), new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId(backButtonId).setLabel(isEN ? "⬅️ BACK" : "⬅️ VOLVER").setStyle(ButtonStyle.Secondary))] 
         });
+        return;
       }
-      return;
     }
 
     // ========== CERRAR TICKET ==========
@@ -856,8 +1205,9 @@ client.on(Events.InteractionCreate, async (interaction) => {
       return;
     }
 
-    // ========== BOTONES QUE ABREN MODALES (NO deferUpdate) ==========
-    // Streaming compra
+    // ========== BOTONES QUE MUESTRAN MODALES ==========
+    
+    // Botones Streaming
     if (interaction.isButton() && interaction.customId.startsWith("buy_streaming_")) {
       const parts = interaction.customId.split("_");
       const serviceName = parts.slice(2).join("_").replace(`_${lang}`, "").replace(/_/g, ' ');
@@ -870,7 +1220,8 @@ client.on(Events.InteractionCreate, async (interaction) => {
       await showStreamingPurchaseForm(interaction, lang, serviceName);
       return;
     }
-    // Gift card compra
+
+    // Botones Gift Cards
     if (interaction.isButton() && interaction.customId.startsWith("buy_giftcard_")) {
       const parts = interaction.customId.split("_");
       const cardName = parts.slice(2).join("_").replace(`_${lang}`, "").replace(/_/g, ' ');
@@ -883,27 +1234,24 @@ client.on(Events.InteractionCreate, async (interaction) => {
       await showGiftCardPurchaseForm(interaction, lang, cardName);
       return;
     }
-    // Zinli
+
+    // Botones Zinli, PayPal, etc.
     if (interaction.isButton() && interaction.customId === `buy_zinli_${lang}`) {
       await showZinliForm(interaction, lang);
       return;
     }
-    // PayPal
     if (interaction.isButton() && interaction.customId === `buy_paypal_${lang}`) {
       await showPayPalForm(interaction, lang);
       return;
     }
-    // Bolívares -> USDT
     if (interaction.isButton() && interaction.customId === `buy_bolivares_to_usdt_${lang}`) {
       await showBolivaresToUSDTForm(interaction, lang);
       return;
     }
-    // USDT -> Bolívares
     if (interaction.isButton() && interaction.customId === `buy_usdt_to_bolivares_${lang}`) {
       await showUSDTToBolivaresForm(interaction, lang);
       return;
     }
-    // WoW GT
     if (interaction.isButton() && interaction.customId === `buy_wowgt_${lang}`) {
       const btns = lang === "en" ? buttonsEN : buttonsES;
       if (btns.wow_gt?.buy === false) {
@@ -914,7 +1262,8 @@ client.on(Events.InteractionCreate, async (interaction) => {
       await showWowGTForm(interaction, lang);
       return;
     }
-    // Compra/venta de oro
+
+    // Botones Compra/Venta (Oro)
     if (interaction.isButton() && (interaction.customId.startsWith("buy_") || interaction.customId.startsWith("sell_") || interaction.customId.startsWith("ticket_buy_") || interaction.customId.startsWith("ticket_sell_"))) {
       if (!interaction.customId.includes("streaming") && !interaction.customId.includes("giftcard") && !interaction.customId.includes("zinli") && !interaction.customId.includes("paypal") && !interaction.customId.includes("bolivares") && !interaction.customId.includes("usdt") && !interaction.customId.includes("wowgt")) {
         const parts = interaction.customId.split("_");
@@ -935,7 +1284,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
       }
     }
 
-    // ========== MENÚ PRINCIPAL ==========
+    // ========== MENÚ PRINCIPAL DE PRECIOS ==========
     if (interaction.isStringSelectMenu() && interaction.customId === `main_menu_${lang}`) {
       const key = interaction.values[0];
       const btns = lang === "en" ? buttonsEN : buttonsES;
@@ -949,6 +1298,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
         scheduleCategoryReset(interaction, interaction.message.id, lang);
         return;
       }
+
       if (key === "boosting") {
         if (btns.boosting?.active === false) {
           await interaction.followUp({ content: isEN ? "❌ Boosting service is currently unavailable" : "❌ Servicio de boosting no disponible", flags: MessageFlags.Ephemeral });
@@ -971,6 +1321,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
         scheduleReset(interaction, interaction.message.id, lang);
         return;
       }
+
       if (key === "giftcards") {
         await interaction.editReply({ 
           embeds: [new EmbedBuilder().setTitle(isEN ? "🎁 GIFT CARDS" : "🎁 TARJETAS").setDescription(isEN ? "Select a gift card:" : "Selecciona una tarjeta:").setColor(0x000000)], 
@@ -979,6 +1330,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
         scheduleCategoryReset(interaction, interaction.message.id, lang);
         return;
       }
+
       if (key === "p2p") {
         await interaction.editReply({ 
           embeds: [new EmbedBuilder().setTitle(isEN ? "💳 P2P EXCHANGE" : "💳 CAMBIO P2P").setDescription(isEN ? "Select a method:" : "Selecciona un método:").setColor(0x000000)], 
@@ -987,6 +1339,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
         scheduleCategoryReset(interaction, interaction.message.id, lang);
         return;
       }
+
       if (key === "streaming") {
         await interaction.editReply({ 
           embeds: [new EmbedBuilder().setTitle(isEN ? "📺 STREAMING SERVICES" : "📺 SERVICIOS DE STREAMING").setDescription(isEN ? "Select a service:" : "Selecciona un servicio:").setColor(0x000000)], 
@@ -995,6 +1348,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
         scheduleCategoryReset(interaction, interaction.message.id, lang);
         return;
       }
+
       if (key === "wow_gt") {
         const data = lang === "en" ? dataEN : dataES;
         const embed = new EmbedBuilder().setTitle(isEN ? "🕒 GAME TIME" : "🕒 TIEMPO JUEGO").setDescription(`**${isEN ? "Price" : "Precio"}:** ${data.wow_gt.price}\n${isEN ? METODOS_RESUMIDOS_EN : METODOS_RESUMIDOS_ES}`).setColor(0x000000);
@@ -1014,10 +1368,12 @@ client.on(Events.InteractionCreate, async (interaction) => {
     if (interaction.isStringSelectMenu() && interaction.customId === `ticket_main_menu_${lang}`) {
       const key = interaction.values[0];
       const btns = lang === "en" ? buttonsEN : buttonsES;
+      
       if (ticketTimeouts.has(interaction.user.id)) {
         clearTimeout(ticketTimeouts.get(interaction.user.id));
         ticketTimeouts.delete(interaction.user.id);
       }
+
       if (key === "ticket_marketplace") {
         await interaction.editReply({ 
           embeds: [new EmbedBuilder().setTitle(isEN ? "🛒 MARKETPLACE" : "🛒 MARKETPLACE").setDescription(isEN ? "Select a game to continue:" : "Selecciona un juego para continuar:").setColor(0x5865F2)], 
@@ -1026,6 +1382,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
         scheduleTicketReset(interaction, interaction.message.id, lang);
         return;
       }
+
       if (key === "ticket_boosting") {
         if (btns.boosting?.active === false) {
           await interaction.followUp({ content: isEN ? "❌ Boosting service is currently unavailable" : "❌ Servicio de boosting no disponible", flags: MessageFlags.Ephemeral });
@@ -1048,6 +1405,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
         scheduleTicketReset(interaction, interaction.message.id, lang);
         return;
       }
+
       if (key === "ticket_giftcards") {
         await interaction.editReply({ 
           embeds: [new EmbedBuilder().setTitle(isEN ? "🎁 GIFT CARDS" : "🎁 TARJETAS").setDescription(isEN ? "Select a gift card:" : "Selecciona una tarjeta:").setColor(0x5865F2)], 
@@ -1056,6 +1414,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
         scheduleTicketReset(interaction, interaction.message.id, lang);
         return;
       }
+
       if (key === "ticket_p2p") {
         await interaction.editReply({ 
           embeds: [new EmbedBuilder().setTitle(isEN ? "💳 P2P EXCHANGE" : "💳 CAMBIO P2P").setDescription(isEN ? "Select a method:" : "Selecciona un método:").setColor(0x5865F2)], 
@@ -1064,6 +1423,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
         scheduleTicketReset(interaction, interaction.message.id, lang);
         return;
       }
+
       if (key === "ticket_streaming") {
         await interaction.editReply({ 
           embeds: [new EmbedBuilder().setTitle(isEN ? "📺 STREAMING SERVICES" : "📺 SERVICIOS DE STREAMING").setDescription(isEN ? "Select a service:" : "Selecciona un servicio:").setColor(0x5865F2)], 
@@ -1072,6 +1432,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
         scheduleTicketReset(interaction, interaction.message.id, lang);
         return;
       }
+
       if (key === "ticket_wow_gt") {
         const data = lang === "en" ? dataEN : dataES;
         const embed = new EmbedBuilder().setTitle(isEN ? "🕒 GAME TIME" : "🕒 TIEMPO JUEGO").setDescription(`**${isEN ? "Price" : "Precio"}:** ${data.wow_gt.price}\n${isEN ? METODOS_RESUMIDOS_EN : METODOS_RESUMIDOS_ES}`).setColor(0x5865F2);
@@ -1085,6 +1446,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
         scheduleTicketReset(interaction, interaction.message.id, lang);
         return;
       }
+
       if (key === "ticket_other") {
         await showOtherForm(interaction, lang);
         return;
@@ -1108,6 +1470,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
         "mmo_group2": ["Throne", "Torchlight", "PoE 1", "PoE 2"],
         "mmo_group3": ["Flyff", "Rubinot", "Tibia"]
       };
+
       const groupTitles = {
         "rpg_group": isEN ? "🎮 RPG GAMES" : "🎮 JUEGOS RPG",
         "wow_group": isEN ? "🌍 WOW PROJECTS" : "🌍 PROYECTOS WOW",
@@ -1116,6 +1479,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
         "mmo_group2": isEN ? "👑 ACTION RPG" : "👑 ACTION RPG",
         "mmo_group3": isEN ? "🪽 OTHER MMOS" : "🪽 OTROS MMOS"
       };
+
       const gameValues = {
         "Diablo 2": "diablo2", "OSRS": "osrs", "Lawl": "lawl",
         "Project Epoch": "epoch", "Ascensión": "ascension",
@@ -1185,8 +1549,11 @@ client.on(Events.InteractionCreate, async (interaction) => {
     // ========== TICKET BOOST TYPE MENU ==========
     if (interaction.isStringSelectMenu() && interaction.customId === `ticket_boost_type_menu_${lang}`) {
       const boostType = interaction.values[0];
-      if (boostType === "leveling") await showLevelingForm(interaction, lang);
-      else if (boostType === "professions") await showProfessionsForm(interaction, lang);
+      if (boostType === "leveling") {
+        await showLevelingForm(interaction, lang);
+      } else if (boostType === "professions") {
+        await showProfessionsForm(interaction, lang);
+      }
       return;
     }
 
@@ -1198,6 +1565,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
       const isTicket = interaction.message.embeds[0]?.color === 0x5865F2;
       const backButtonId = isTicket ? `back_ticket_${lang}` : `back_marketplace_${lang}`;
       const embedColor = isTicket ? 0x5865F2 : 0x000000;
+      
       if (game && game.servers) {
         const serverMenu = new ActionRowBuilder().addComponents(new StringSelectMenuBuilder().setCustomId(`select_${selectedValue}_${lang}`).setPlaceholder(isEN ? "--- SELECT SERVER ---" : "--- SELECCIONA SERVIDOR ---").addOptions(game.servers.map(s => ({ label: s.label, value: s.value }))));
         await interaction.editReply({ embeds: [new EmbedBuilder().setTitle(game.title).setDescription(isEN ? "Select your server." : "Selecciona tu servidor.").setColor(embedColor)], components: [serverMenu, new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId(backButtonId).setLabel(isEN ? "⬅️ BACK" : "⬅️ VOLVER").setStyle(ButtonStyle.Secondary))] });
@@ -1222,11 +1590,8 @@ client.on(Events.InteractionCreate, async (interaction) => {
       const backButtonId = isTicket ? `back_ticket_${lang}` : `back_marketplace_${lang}`;
       const buttonBuyId = isTicket ? `ticket_buy_${gameKey}_${server.label}_${lang}` : `buy_${gameKey}_${server.label}_${lang}`;
       const buttonSellId = isTicket ? `ticket_sell_${gameKey}_${server.label}_${lang}` : `sell_${gameKey}_${server.label}_${lang}`;
-      await interaction.editReply({ embeds: [embed], components: [new ActionRowBuilder().addComponents(
-        new ButtonBuilder().setCustomId(buttonBuyId).setLabel(buyActive ? (isEN ? "🟢 WE SELL" : "🟢 VENDEMOS") : (isEN ? "🔴 UNAVAILABLE" : "🔴 NO DISPONIBLE")).setStyle(buyActive ? ButtonStyle.Success : ButtonStyle.Secondary).setDisabled(!buyActive),
-        new ButtonBuilder().setCustomId(buttonSellId).setLabel(sellActive ? (isEN ? "🔴 WE BUY" : "🔴 COMPRAMOS") : (isEN ? "⚫ UNAVAILABLE" : "⚫ NO DISPONIBLE")).setStyle(sellActive ? ButtonStyle.Danger : ButtonStyle.Secondary).setDisabled(!sellActive),
-        new ButtonBuilder().setCustomId(backButtonId).setLabel(isEN ? "⬅️ BACK" : "⬅️ VOLVER").setStyle(ButtonStyle.Secondary)
-      )] });
+      
+      await interaction.editReply({ embeds: [embed], components: [new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId(buttonBuyId).setLabel(buyActive ? (isEN ? "🟢 WE SELL" : "🟢 VENDEMOS") : (isEN ? "🔴 UNAVAILABLE" : "🔴 NO DISPONIBLE")).setStyle(buyActive ? ButtonStyle.Success : ButtonStyle.Secondary).setDisabled(!buyActive), new ButtonBuilder().setCustomId(buttonSellId).setLabel(sellActive ? (isEN ? "🔴 WE BUY" : "🔴 COMPRAMOS") : (isEN ? "⚫ UNAVAILABLE" : "⚫ NO DISPONIBLE")).setStyle(sellActive ? ButtonStyle.Danger : ButtonStyle.Secondary).setDisabled(!sellActive), new ButtonBuilder().setCustomId(backButtonId).setLabel(isEN ? "⬅️ BACK" : "⬅️ VOLVER").setStyle(ButtonStyle.Secondary))] });
       if (!isTicket) scheduleReset(interaction, interaction.message.id, lang);
       return;
     }
@@ -1234,15 +1599,18 @@ client.on(Events.InteractionCreate, async (interaction) => {
     // ========== BOOST TYPE MENU ==========
     if (interaction.isStringSelectMenu() && interaction.customId === `boost_type_menu_${lang}`) {
       const boostType = interaction.values[0];
-      if (boostType === "leveling") await showLevelingForm(interaction, lang);
-      else if (boostType === "professions") await showProfessionsForm(interaction, lang);
+      if (boostType === "leveling") {
+        await showLevelingForm(interaction, lang);
+      } else if (boostType === "professions") {
+        await showProfessionsForm(interaction, lang);
+      }
       return;
     }
 
-    // ========== MODALES (MANEJADORES COMPLETOS) ==========
+    // ========== MODALES ==========
     
-    // ---- MODAL ORO ----
-    if (interaction.type === 5 && interaction.customId === `gold_form_${lang}`) {
+    // Modal Oro
+    if (interaction.type === 5 && interaction.customId && interaction.customId === `gold_form_${lang}`) {
       await interaction.deferReply({ flags: MessageFlags.Ephemeral });
       try {
         await deleteMenuMessage(interaction.user.id);
@@ -1251,17 +1619,21 @@ client.on(Events.InteractionCreate, async (interaction) => {
           await interaction.editReply({ content: isEN ? `❌ You have a ticket: ${existingTicket}` : `❌ Ya tienes un ticket: ${existingTicket}` });
           return;
         }
+        
         const juegoServidor = interaction.fields.getTextInputValue("juego_servidor");
         const cantidad = interaction.fields.getTextInputValue("cantidad");
         const faccionPersonaje = interaction.fields.getTextInputValue("faccion_personaje");
         const pago = interaction.fields.getTextInputValue("pago");
         const descripcion = interaction.fields.getTextInputValue("descripcion") || (isEN ? "None" : "Ninguna");
+        
         const description = isEN 
           ? `**Client:** <@${interaction.user.id}>\n**Service:** Gold\n**Game & Server:** ${juegoServidor}\n**Quantity:** ${cantidad}\n**Faction & Character:** ${faccionPersonaje}\n**Payment:** ${pago}\n**Description:** ${descripcion}`
           : `**Cliente:** <@${interaction.user.id}>\n**Servicio:** Oro\n**Juego y Servidor:** ${juegoServidor}\n**Cantidad:** ${cantidad}\n**Facción y Personaje:** ${faccionPersonaje}\n**Pago:** ${pago}\n**Descripción:** ${descripcion}`;
+        
         const category = await interaction.guild.channels.fetch(ID_CATEGORIA_TICKETS);
         const safeUsername = interaction.user.username.replace(/[^a-zA-Z0-9]/g, "-").substring(0, 20);
         const ticketName = `ticket-${safeUsername}`;
+        
         const ticketChannel = await interaction.guild.channels.create({
           name: ticketName,
           type: 0,
@@ -1272,6 +1644,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
             { id: ID_ROL_SOPORTE, allow: [PermissionsBitField.Flags.ViewChannel, PermissionsBitField.Flags.SendMessages, PermissionsBitField.Flags.ReadMessageHistory] }
           ]
         });
+        
         const embed = new EmbedBuilder().setTitle("💰 GOLD").setDescription(description).setColor(0x5865F2);
         const closeButton = new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId("close_ticket").setLabel(isEN ? "🔒 CLOSE" : "🔒 CERRAR").setStyle(ButtonStyle.Danger));
         await ticketChannel.send({ content: `<@${interaction.user.id}> <@&${ID_ROL_SOPORTE}>`, embeds: [embed], components: [closeButton] });
@@ -1284,26 +1657,33 @@ client.on(Events.InteractionCreate, async (interaction) => {
       return;
     }
 
-    // ---- MODAL STREAMING ----
-    if (interaction.type === 5 && interaction.customId === `streaming_form_${lang}`) {
+    // Modal Streaming
+    if (interaction.type === 5 && interaction.customId && interaction.customId.startsWith("streaming_form_")) {
       await interaction.deferReply({ flags: MessageFlags.Ephemeral });
       try {
         await deleteMenuMessage(interaction.user.id);
+        const langCode = interaction.customId.split("_")[2];
+        const isENlocal = langCode === "en";
+        
         const existingTicket = await hasOpenTicket(interaction.guild, interaction.user.username);
         if (existingTicket) {
-          await interaction.editReply({ content: isEN ? `❌ You have a ticket: ${existingTicket}` : `❌ Ya tienes un ticket: ${existingTicket}` });
+          await interaction.editReply({ content: isENlocal ? `❌ You have a ticket: ${existingTicket}` : `❌ Ya tienes un ticket: ${existingTicket}` });
           return;
         }
+        
         const nombre = interaction.fields.getTextInputValue("nombre");
         const tipoCuenta = interaction.fields.getTextInputValue("tipo_cuenta");
         const plan = interaction.fields.getTextInputValue("plan");
-        const descripcion = interaction.fields.getTextInputValue("descripcion") || (isEN ? "None" : "Ninguna");
-        const description = isEN
+        const descripcion = interaction.fields.getTextInputValue("descripcion") || (isENlocal ? "None" : "Ninguna");
+        
+        const description = isENlocal 
           ? `**Client:** <@${interaction.user.id}>\n**Service:** Streaming\n**Full Name:** ${nombre}\n**Account Type:** ${tipoCuenta}\n**Plan:** ${plan}\n**Description:** ${descripcion}`
           : `**Cliente:** <@${interaction.user.id}>\n**Servicio:** Streaming\n**Nombre:** ${nombre}\n**Tipo de cuenta:** ${tipoCuenta}\n**Plan:** ${plan}\n**Descripción:** ${descripcion}`;
+        
         const category = await interaction.guild.channels.fetch(ID_CATEGORIA_TICKETS);
         const safeUsername = interaction.user.username.replace(/[^a-zA-Z0-9]/g, "-").substring(0, 20);
         const ticketName = `ticket-${safeUsername}`;
+        
         const ticketChannel = await interaction.guild.channels.create({
           name: ticketName,
           type: 0,
@@ -1314,10 +1694,11 @@ client.on(Events.InteractionCreate, async (interaction) => {
             { id: ID_ROL_SOPORTE, allow: [PermissionsBitField.Flags.ViewChannel, PermissionsBitField.Flags.SendMessages, PermissionsBitField.Flags.ReadMessageHistory] }
           ]
         });
+        
         const embed = new EmbedBuilder().setTitle("📺 STREAMING").setDescription(description).setColor(0x5865F2);
-        const closeButton = new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId("close_ticket").setLabel(isEN ? "🔒 CLOSE" : "🔒 CERRAR").setStyle(ButtonStyle.Danger));
+        const closeButton = new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId("close_ticket").setLabel(isENlocal ? "🔒 CLOSE" : "🔒 CERRAR").setStyle(ButtonStyle.Danger));
         await ticketChannel.send({ content: `<@${interaction.user.id}> <@&${ID_ROL_SOPORTE}>`, embeds: [embed], components: [closeButton] });
-        await interaction.editReply({ content: isEN ? `✅ Ticket created: ${ticketChannel}` : `✅ Ticket creado: ${ticketChannel}` });
+        await interaction.editReply({ content: isENlocal ? `✅ Ticket created: ${ticketChannel}` : `✅ Ticket creado: ${ticketChannel}` });
         setTimeout(() => interaction.deleteReply().catch(() => {}), 10000);
       } catch (error) {
         console.error("Error en streaming form:", error);
@@ -1326,26 +1707,33 @@ client.on(Events.InteractionCreate, async (interaction) => {
       return;
     }
 
-    // ---- MODAL GIFT CARD ----
-    if (interaction.type === 5 && interaction.customId === `giftcard_form_${lang}`) {
+    // Modal Gift Card
+    if (interaction.type === 5 && interaction.customId && interaction.customId.startsWith("giftcard_form_")) {
       await interaction.deferReply({ flags: MessageFlags.Ephemeral });
       try {
         await deleteMenuMessage(interaction.user.id);
+        const langCode = interaction.customId.split("_")[2];
+        const isENlocal = langCode === "en";
+        
         const existingTicket = await hasOpenTicket(interaction.guild, interaction.user.username);
         if (existingTicket) {
-          await interaction.editReply({ content: isEN ? `❌ You have a ticket: ${existingTicket}` : `❌ Ya tienes un ticket: ${existingTicket}` });
+          await interaction.editReply({ content: isENlocal ? `❌ You have a ticket: ${existingTicket}` : `❌ Ya tienes un ticket: ${existingTicket}` });
           return;
         }
+        
         const nombre = interaction.fields.getTextInputValue("nombre");
         const nombreGiftcard = interaction.fields.getTextInputValue("nombre_giftcard");
         const monto = interaction.fields.getTextInputValue("monto");
-        const descripcion = interaction.fields.getTextInputValue("descripcion") || (isEN ? "None" : "Ninguna");
-        const description = isEN
+        const descripcion = interaction.fields.getTextInputValue("descripcion") || (isENlocal ? "None" : "Ninguna");
+        
+        const description = isENlocal 
           ? `**Client:** <@${interaction.user.id}>\n**Service:** Gift Card\n**Full Name:** ${nombre}\n**Gift Card:** ${nombreGiftcard}\n**Amount:** ${monto}\n**Description:** ${descripcion}`
           : `**Cliente:** <@${interaction.user.id}>\n**Servicio:** Gift Card\n**Nombre:** ${nombre}\n**Gift Card:** ${nombreGiftcard}\n**Monto:** ${monto}\n**Descripción:** ${descripcion}`;
+        
         const category = await interaction.guild.channels.fetch(ID_CATEGORIA_TICKETS);
         const safeUsername = interaction.user.username.replace(/[^a-zA-Z0-9]/g, "-").substring(0, 20);
         const ticketName = `ticket-${safeUsername}`;
+        
         const ticketChannel = await interaction.guild.channels.create({
           name: ticketName,
           type: 0,
@@ -1356,10 +1744,11 @@ client.on(Events.InteractionCreate, async (interaction) => {
             { id: ID_ROL_SOPORTE, allow: [PermissionsBitField.Flags.ViewChannel, PermissionsBitField.Flags.SendMessages, PermissionsBitField.Flags.ReadMessageHistory] }
           ]
         });
+        
         const embed = new EmbedBuilder().setTitle("🎁 GIFT CARD").setDescription(description).setColor(0x5865F2);
-        const closeButton = new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId("close_ticket").setLabel(isEN ? "🔒 CLOSE" : "🔒 CERRAR").setStyle(ButtonStyle.Danger));
+        const closeButton = new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId("close_ticket").setLabel(isENlocal ? "🔒 CLOSE" : "🔒 CERRAR").setStyle(ButtonStyle.Danger));
         await ticketChannel.send({ content: `<@${interaction.user.id}> <@&${ID_ROL_SOPORTE}>`, embeds: [embed], components: [closeButton] });
-        await interaction.editReply({ content: isEN ? `✅ Ticket created: ${ticketChannel}` : `✅ Ticket creado: ${ticketChannel}` });
+        await interaction.editReply({ content: isENlocal ? `✅ Ticket created: ${ticketChannel}` : `✅ Ticket creado: ${ticketChannel}` });
         setTimeout(() => interaction.deleteReply().catch(() => {}), 10000);
       } catch (error) {
         console.error("Error en giftcard form:", error);
@@ -1368,25 +1757,32 @@ client.on(Events.InteractionCreate, async (interaction) => {
       return;
     }
 
-    // ---- MODAL ZINLI ----
-    if (interaction.type === 5 && interaction.customId === `zinli_form_${lang}`) {
+    // Modal Zinli
+    if (interaction.type === 5 && interaction.customId && interaction.customId.startsWith("zinli_form_")) {
       await interaction.deferReply({ flags: MessageFlags.Ephemeral });
       try {
         await deleteMenuMessage(interaction.user.id);
+        const langCode = interaction.customId.split("_")[2];
+        const isENlocal = langCode === "en";
+        
         const existingTicket = await hasOpenTicket(interaction.guild, interaction.user.username);
         if (existingTicket) {
-          await interaction.editReply({ content: isEN ? `❌ You have a ticket: ${existingTicket}` : `❌ Ya tienes un ticket: ${existingTicket}` });
+          await interaction.editReply({ content: isENlocal ? `❌ You have a ticket: ${existingTicket}` : `❌ Ya tienes un ticket: ${existingTicket}` });
           return;
         }
+        
         const nombre = interaction.fields.getTextInputValue("nombre");
         const monto = interaction.fields.getTextInputValue("monto");
-        const descripcion = interaction.fields.getTextInputValue("descripcion") || (isEN ? "None" : "Ninguna");
-        const description = isEN
+        const descripcion = interaction.fields.getTextInputValue("descripcion") || (isENlocal ? "None" : "Ninguna");
+        
+        const description = isENlocal 
           ? `**Client:** <@${interaction.user.id}>\n**Service:** Zinli\n**Full Name:** ${nombre}\n**Amount:** ${monto}\n**Description:** ${descripcion}`
           : `**Cliente:** <@${interaction.user.id}>\n**Servicio:** Zinli\n**Nombre:** ${nombre}\n**Monto:** ${monto}\n**Descripción:** ${descripcion}`;
+        
         const category = await interaction.guild.channels.fetch(ID_CATEGORIA_TICKETS);
         const safeUsername = interaction.user.username.replace(/[^a-zA-Z0-9]/g, "-").substring(0, 20);
         const ticketName = `ticket-${safeUsername}`;
+        
         const ticketChannel = await interaction.guild.channels.create({
           name: ticketName,
           type: 0,
@@ -1397,10 +1793,11 @@ client.on(Events.InteractionCreate, async (interaction) => {
             { id: ID_ROL_SOPORTE, allow: [PermissionsBitField.Flags.ViewChannel, PermissionsBitField.Flags.SendMessages, PermissionsBitField.Flags.ReadMessageHistory] }
           ]
         });
+        
         const embed = new EmbedBuilder().setTitle("💳 ZINLI").setDescription(description).setColor(0x5865F2);
-        const closeButton = new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId("close_ticket").setLabel(isEN ? "🔒 CLOSE" : "🔒 CERRAR").setStyle(ButtonStyle.Danger));
+        const closeButton = new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId("close_ticket").setLabel(isENlocal ? "🔒 CLOSE" : "🔒 CERRAR").setStyle(ButtonStyle.Danger));
         await ticketChannel.send({ content: `<@${interaction.user.id}> <@&${ID_ROL_SOPORTE}>`, embeds: [embed], components: [closeButton] });
-        await interaction.editReply({ content: isEN ? `✅ Ticket created: ${ticketChannel}` : `✅ Ticket creado: ${ticketChannel}` });
+        await interaction.editReply({ content: isENlocal ? `✅ Ticket created: ${ticketChannel}` : `✅ Ticket creado: ${ticketChannel}` });
         setTimeout(() => interaction.deleteReply().catch(() => {}), 10000);
       } catch (error) {
         console.error("Error en zinli form:", error);
@@ -1409,25 +1806,32 @@ client.on(Events.InteractionCreate, async (interaction) => {
       return;
     }
 
-    // ---- MODAL PAYPAL ----
-    if (interaction.type === 5 && interaction.customId === `paypal_form_${lang}`) {
+    // Modal PayPal
+    if (interaction.type === 5 && interaction.customId && interaction.customId.startsWith("paypal_form_")) {
       await interaction.deferReply({ flags: MessageFlags.Ephemeral });
       try {
         await deleteMenuMessage(interaction.user.id);
+        const langCode = interaction.customId.split("_")[2];
+        const isENlocal = langCode === "en";
+        
         const existingTicket = await hasOpenTicket(interaction.guild, interaction.user.username);
         if (existingTicket) {
-          await interaction.editReply({ content: isEN ? `❌ You have a ticket: ${existingTicket}` : `❌ Ya tienes un ticket: ${existingTicket}` });
+          await interaction.editReply({ content: isENlocal ? `❌ You have a ticket: ${existingTicket}` : `❌ Ya tienes un ticket: ${existingTicket}` });
           return;
         }
+        
         const nombre = interaction.fields.getTextInputValue("nombre");
         const monto = interaction.fields.getTextInputValue("monto");
-        const descripcion = interaction.fields.getTextInputValue("descripcion") || (isEN ? "None" : "Ninguna");
-        const description = isEN
+        const descripcion = interaction.fields.getTextInputValue("descripcion") || (isENlocal ? "None" : "Ninguna");
+        
+        const description = isENlocal 
           ? `**Client:** <@${interaction.user.id}>\n**Service:** PayPal\n**Full Name:** ${nombre}\n**Amount:** ${monto}\n**Description:** ${descripcion}`
           : `**Cliente:** <@${interaction.user.id}>\n**Servicio:** PayPal\n**Nombre:** ${nombre}\n**Monto:** ${monto}\n**Descripción:** ${descripcion}`;
+        
         const category = await interaction.guild.channels.fetch(ID_CATEGORIA_TICKETS);
         const safeUsername = interaction.user.username.replace(/[^a-zA-Z0-9]/g, "-").substring(0, 20);
         const ticketName = `ticket-${safeUsername}`;
+        
         const ticketChannel = await interaction.guild.channels.create({
           name: ticketName,
           type: 0,
@@ -1438,10 +1842,11 @@ client.on(Events.InteractionCreate, async (interaction) => {
             { id: ID_ROL_SOPORTE, allow: [PermissionsBitField.Flags.ViewChannel, PermissionsBitField.Flags.SendMessages, PermissionsBitField.Flags.ReadMessageHistory] }
           ]
         });
+        
         const embed = new EmbedBuilder().setTitle("💳 PAYPAL").setDescription(description).setColor(0x5865F2);
-        const closeButton = new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId("close_ticket").setLabel(isEN ? "🔒 CLOSE" : "🔒 CERRAR").setStyle(ButtonStyle.Danger));
+        const closeButton = new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId("close_ticket").setLabel(isENlocal ? "🔒 CLOSE" : "🔒 CERRAR").setStyle(ButtonStyle.Danger));
         await ticketChannel.send({ content: `<@${interaction.user.id}> <@&${ID_ROL_SOPORTE}>`, embeds: [embed], components: [closeButton] });
-        await interaction.editReply({ content: isEN ? `✅ Ticket created: ${ticketChannel}` : `✅ Ticket creado: ${ticketChannel}` });
+        await interaction.editReply({ content: isENlocal ? `✅ Ticket created: ${ticketChannel}` : `✅ Ticket creado: ${ticketChannel}` });
         setTimeout(() => interaction.deleteReply().catch(() => {}), 10000);
       } catch (error) {
         console.error("Error en paypal form:", error);
@@ -1450,25 +1855,33 @@ client.on(Events.InteractionCreate, async (interaction) => {
       return;
     }
 
-    // ---- MODAL BOLÍVARES → USDT ----
-    if (interaction.type === 5 && interaction.customId === `bolivares_to_usdt_form_${lang}`) {
+    // Modal Bolívares → USDT
+    if (interaction.type === 5 && interaction.customId && interaction.customId.startsWith("bolivares_to_usdt_form_")) {
       await interaction.deferReply({ flags: MessageFlags.Ephemeral });
       try {
         await deleteMenuMessage(interaction.user.id);
+        const parts = interaction.customId.split("_");
+        const langCode = parts[3];
+        const isENlocal = langCode === "en";
+        
         const existingTicket = await hasOpenTicket(interaction.guild, interaction.user.username);
         if (existingTicket) {
-          await interaction.editReply({ content: isEN ? `❌ You have a ticket: ${existingTicket}` : `❌ Ya tienes un ticket: ${existingTicket}` });
+          await interaction.editReply({ content: isENlocal ? `❌ You have a ticket: ${existingTicket}` : `❌ Ya tienes un ticket: ${existingTicket}` });
           return;
         }
+        
         const nombre = interaction.fields.getTextInputValue("nombre");
         const montoBS = interaction.fields.getTextInputValue("monto_bs");
-        const descripcion = interaction.fields.getTextInputValue("descripcion") || (isEN ? "None" : "Ninguna");
-        const description = isEN
+        const descripcion = interaction.fields.getTextInputValue("descripcion") || (isENlocal ? "None" : "Ninguna");
+        
+        const description = isENlocal 
           ? `**Client:** <@${interaction.user.id}>\n**Service:** Bolívares → USDT\n**Full Name:** ${nombre}\n**Amount in Bolívares:** ${montoBS} BS\n**Description / Send to:** ${descripcion}`
           : `**Cliente:** <@${interaction.user.id}>\n**Servicio:** Bolívares → USDT\n**Nombre:** ${nombre}\n**Cantidad en Bolívares:** ${montoBS} BS\n**Descripción / Enviar a:** ${descripcion}`;
+        
         const category = await interaction.guild.channels.fetch(ID_CATEGORIA_TICKETS);
         const safeUsername = interaction.user.username.replace(/[^a-zA-Z0-9]/g, "-").substring(0, 20);
         const ticketName = `ticket-${safeUsername}`;
+        
         const ticketChannel = await interaction.guild.channels.create({
           name: ticketName,
           type: 0,
@@ -1479,10 +1892,11 @@ client.on(Events.InteractionCreate, async (interaction) => {
             { id: ID_ROL_SOPORTE, allow: [PermissionsBitField.Flags.ViewChannel, PermissionsBitField.Flags.SendMessages, PermissionsBitField.Flags.ReadMessageHistory] }
           ]
         });
+        
         const embed = new EmbedBuilder().setTitle("🇻🇪 BOLÍVARES → USDT").setDescription(description).setColor(0x5865F2);
-        const closeButton = new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId("close_ticket").setLabel(isEN ? "🔒 CLOSE" : "🔒 CERRAR").setStyle(ButtonStyle.Danger));
+        const closeButton = new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId("close_ticket").setLabel(isENlocal ? "🔒 CLOSE" : "🔒 CERRAR").setStyle(ButtonStyle.Danger));
         await ticketChannel.send({ content: `<@${interaction.user.id}> <@&${ID_ROL_SOPORTE}>`, embeds: [embed], components: [closeButton] });
-        await interaction.editReply({ content: isEN ? `✅ Ticket created: ${ticketChannel}` : `✅ Ticket creado: ${ticketChannel}` });
+        await interaction.editReply({ content: isENlocal ? `✅ Ticket created: ${ticketChannel}` : `✅ Ticket creado: ${ticketChannel}` });
         setTimeout(() => interaction.deleteReply().catch(() => {}), 10000);
       } catch (error) {
         console.error("Error en bolivares to usdt form:", error);
@@ -1491,25 +1905,33 @@ client.on(Events.InteractionCreate, async (interaction) => {
       return;
     }
 
-    // ---- MODAL USDT → BOLÍVARES ----
-    if (interaction.type === 5 && interaction.customId === `usdt_to_bolivares_form_${lang}`) {
+    // Modal USDT → Bolívares
+    if (interaction.type === 5 && interaction.customId && interaction.customId.startsWith("usdt_to_bolivares_form_")) {
       await interaction.deferReply({ flags: MessageFlags.Ephemeral });
       try {
         await deleteMenuMessage(interaction.user.id);
+        const parts = interaction.customId.split("_");
+        const langCode = parts[4];
+        const isENlocal = langCode === "en";
+        
         const existingTicket = await hasOpenTicket(interaction.guild, interaction.user.username);
         if (existingTicket) {
-          await interaction.editReply({ content: isEN ? `❌ You have a ticket: ${existingTicket}` : `❌ Ya tienes un ticket: ${existingTicket}` });
+          await interaction.editReply({ content: isENlocal ? `❌ You have a ticket: ${existingTicket}` : `❌ Ya tienes un ticket: ${existingTicket}` });
           return;
         }
+        
         const nombre = interaction.fields.getTextInputValue("nombre");
         const montoUSDT = interaction.fields.getTextInputValue("monto_usdt");
-        const descripcion = interaction.fields.getTextInputValue("descripcion") || (isEN ? "None" : "Ninguna");
-        const description = isEN
+        const descripcion = interaction.fields.getTextInputValue("descripcion") || (isENlocal ? "None" : "Ninguna");
+        
+        const description = isENlocal 
           ? `**Client:** <@${interaction.user.id}>\n**Service:** USDT → Bolívares\n**Full Name:** ${nombre}\n**Amount in USDT:** ${montoUSDT} USDT\n**Description / Send to:** ${descripcion}`
           : `**Cliente:** <@${interaction.user.id}>\n**Servicio:** USDT → Bolívares\n**Nombre:** ${nombre}\n**Cantidad en USDT:** ${montoUSDT} USDT\n**Descripción / Enviar a:** ${descripcion}`;
+        
         const category = await interaction.guild.channels.fetch(ID_CATEGORIA_TICKETS);
         const safeUsername = interaction.user.username.replace(/[^a-zA-Z0-9]/g, "-").substring(0, 20);
         const ticketName = `ticket-${safeUsername}`;
+        
         const ticketChannel = await interaction.guild.channels.create({
           name: ticketName,
           type: 0,
@@ -1520,10 +1942,11 @@ client.on(Events.InteractionCreate, async (interaction) => {
             { id: ID_ROL_SOPORTE, allow: [PermissionsBitField.Flags.ViewChannel, PermissionsBitField.Flags.SendMessages, PermissionsBitField.Flags.ReadMessageHistory] }
           ]
         });
+        
         const embed = new EmbedBuilder().setTitle("🇻🇪 USDT → BOLÍVARES").setDescription(description).setColor(0x5865F2);
-        const closeButton = new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId("close_ticket").setLabel(isEN ? "🔒 CLOSE" : "🔒 CERRAR").setStyle(ButtonStyle.Danger));
+        const closeButton = new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId("close_ticket").setLabel(isENlocal ? "🔒 CLOSE" : "🔒 CERRAR").setStyle(ButtonStyle.Danger));
         await ticketChannel.send({ content: `<@${interaction.user.id}> <@&${ID_ROL_SOPORTE}>`, embeds: [embed], components: [closeButton] });
-        await interaction.editReply({ content: isEN ? `✅ Ticket created: ${ticketChannel}` : `✅ Ticket creado: ${ticketChannel}` });
+        await interaction.editReply({ content: isENlocal ? `✅ Ticket created: ${ticketChannel}` : `✅ Ticket creado: ${ticketChannel}` });
         setTimeout(() => interaction.deleteReply().catch(() => {}), 10000);
       } catch (error) {
         console.error("Error en usdt to bolivares form:", error);
@@ -1532,8 +1955,8 @@ client.on(Events.InteractionCreate, async (interaction) => {
       return;
     }
 
-    // ---- MODAL WOW GAME TIME ----
-    if (interaction.type === 5 && interaction.customId === `wowgt_form_${lang}`) {
+    // Modal Wow Game Time
+    if (interaction.type === 5 && interaction.customId && interaction.customId === `wowgt_form_${lang}`) {
       await interaction.deferReply({ flags: MessageFlags.Ephemeral });
       try {
         await deleteMenuMessage(interaction.user.id);
@@ -1542,15 +1965,19 @@ client.on(Events.InteractionCreate, async (interaction) => {
           await interaction.editReply({ content: isEN ? `❌ You have a ticket: ${existingTicket}` : `❌ Ya tienes un ticket: ${existingTicket}` });
           return;
         }
+        
         const nombre = interaction.fields.getTextInputValue("nombre");
         const monto = interaction.fields.getTextInputValue("monto");
         const descripcion = interaction.fields.getTextInputValue("descripcion") || (isEN ? "None" : "Ninguna");
-        const description = isEN
+        
+        const description = isEN 
           ? `**Client:** <@${interaction.user.id}>\n**Service:** WoW Game Time\n**Full Name:** ${nombre}\n**Amount:** ${monto}\n**Description:** ${descripcion}`
           : `**Cliente:** <@${interaction.user.id}>\n**Servicio:** WoW Tiempo de Juego\n**Nombre:** ${nombre}\n**Monto:** ${monto}\n**Descripción:** ${descripcion}`;
+        
         const category = await interaction.guild.channels.fetch(ID_CATEGORIA_TICKETS);
         const safeUsername = interaction.user.username.replace(/[^a-zA-Z0-9]/g, "-").substring(0, 20);
         const ticketName = `ticket-${safeUsername}`;
+        
         const ticketChannel = await interaction.guild.channels.create({
           name: ticketName,
           type: 0,
@@ -1561,6 +1988,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
             { id: ID_ROL_SOPORTE, allow: [PermissionsBitField.Flags.ViewChannel, PermissionsBitField.Flags.SendMessages, PermissionsBitField.Flags.ReadMessageHistory] }
           ]
         });
+        
         const embed = new EmbedBuilder().setTitle("🕒 WOW GAME TIME").setDescription(description).setColor(0x5865F2);
         const closeButton = new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId("close_ticket").setLabel(isEN ? "🔒 CLOSE" : "🔒 CERRAR").setStyle(ButtonStyle.Danger));
         await ticketChannel.send({ content: `<@${interaction.user.id}> <@&${ID_ROL_SOPORTE}>`, embeds: [embed], components: [closeButton] });
@@ -1573,8 +2001,8 @@ client.on(Events.InteractionCreate, async (interaction) => {
       return;
     }
 
-    // ---- MODAL OTHER ----
-    if (interaction.type === 5 && interaction.customId === `other_form_${lang}`) {
+    // Modal Other
+    if (interaction.type === 5 && interaction.customId && interaction.customId === `other_form_${lang}`) {
       await interaction.deferReply({ flags: MessageFlags.Ephemeral });
       try {
         await deleteMenuMessage(interaction.user.id);
@@ -1583,15 +2011,19 @@ client.on(Events.InteractionCreate, async (interaction) => {
           await interaction.editReply({ content: isEN ? `❌ You have a ticket: ${existingTicket}` : `❌ Ya tienes un ticket: ${existingTicket}` });
           return;
         }
+        
         const consulta = interaction.fields.getTextInputValue("consulta");
         const contacto = interaction.fields.getTextInputValue("contacto") || (isEN ? "Not specified" : "No especificado");
         const descripcion = interaction.fields.getTextInputValue("descripcion") || (isEN ? "None" : "Ninguna");
-        const description = isEN
+        
+        const description = isEN 
           ? `**Client:** <@${interaction.user.id}>\n**Service:** Other\n**Request:** ${consulta}\n**Contact:** ${contacto}\n**Description:** ${descripcion}`
           : `**Cliente:** <@${interaction.user.id}>\n**Servicio:** Otro\n**Consulta:** ${consulta}\n**Contacto:** ${contacto}\n**Descripción:** ${descripcion}`;
+        
         const category = await interaction.guild.channels.fetch(ID_CATEGORIA_TICKETS);
         const safeUsername = interaction.user.username.replace(/[^a-zA-Z0-9]/g, "-").substring(0, 20);
         const ticketName = `ticket-${safeUsername}`;
+        
         const ticketChannel = await interaction.guild.channels.create({
           name: ticketName,
           type: 0,
@@ -1602,6 +2034,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
             { id: ID_ROL_SOPORTE, allow: [PermissionsBitField.Flags.ViewChannel, PermissionsBitField.Flags.SendMessages, PermissionsBitField.Flags.ReadMessageHistory] }
           ]
         });
+        
         const embed = new EmbedBuilder().setTitle("❓ OTHER").setDescription(description).setColor(0x5865F2);
         const closeButton = new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId("close_ticket").setLabel(isEN ? "🔒 CLOSE" : "🔒 CERRAR").setStyle(ButtonStyle.Danger));
         await ticketChannel.send({ content: `<@${interaction.user.id}> <@&${ID_ROL_SOPORTE}>`, embeds: [embed], components: [closeButton] });
@@ -1614,8 +2047,10 @@ client.on(Events.InteractionCreate, async (interaction) => {
       return;
     }
 
-    // ---- MODAL LEVELING ----
-    if (interaction.type === 5 && interaction.customId === `leveling_form_${lang}`) {
+    // ========== MODALES DE BOOSTING ==========
+
+    // Modal Leveling
+    if (interaction.type === 5 && interaction.customId && interaction.customId === `leveling_form_${lang}`) {
       await interaction.deferReply({ flags: MessageFlags.Ephemeral });
       try {
         await deleteMenuMessage(interaction.user.id);
@@ -1624,17 +2059,21 @@ client.on(Events.InteractionCreate, async (interaction) => {
           await interaction.editReply({ content: isEN ? `❌ You have a ticket: ${existingTicket}` : `❌ Ya tienes un ticket: ${existingTicket}` });
           return;
         }
+        
         const juegoServidor = interaction.fields.getTextInputValue("juego_servidor");
         const claseFaccion = interaction.fields.getTextInputValue("clase_faccion");
         const niveles = interaction.fields.getTextInputValue("niveles");
         const personajePago = interaction.fields.getTextInputValue("personaje_pago");
         const descripcion = interaction.fields.getTextInputValue("descripcion") || (isEN ? "None" : "Ninguna");
-        const description = isEN
+        
+        const description = isEN 
           ? `**Client:** <@${interaction.user.id}>\n**Service:** Leveling\n**Game & Server:** ${juegoServidor}\n**Class/Faction:** ${claseFaccion}\n**Levels:** ${niveles}\n**Character & Payment:** ${personajePago}\n**Description:** ${descripcion}`
           : `**Cliente:** <@${interaction.user.id}>\n**Servicio:** Leveling\n**Juego y Servidor:** ${juegoServidor}\n**Clase/Facción:** ${claseFaccion}\n**Niveles:** ${niveles}\n**Personaje y Pago:** ${personajePago}\n**Descripción:** ${descripcion}`;
+        
         const category = await interaction.guild.channels.fetch(ID_CATEGORIA_TICKETS);
         const safeUsername = interaction.user.username.replace(/[^a-zA-Z0-9]/g, "-").substring(0, 20);
         const ticketName = `ticket-${safeUsername}`;
+        
         const ticketChannel = await interaction.guild.channels.create({
           name: ticketName,
           type: 0,
@@ -1645,6 +2084,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
             { id: ID_ROL_SOPORTE, allow: [PermissionsBitField.Flags.ViewChannel, PermissionsBitField.Flags.SendMessages, PermissionsBitField.Flags.ReadMessageHistory] }
           ]
         });
+        
         const embed = new EmbedBuilder().setTitle("📈 LEVELING").setDescription(description).setColor(0x5865F2);
         const closeButton = new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId("close_ticket").setLabel(isEN ? "🔒 CLOSE" : "🔒 CERRAR").setStyle(ButtonStyle.Danger));
         await ticketChannel.send({ content: `<@${interaction.user.id}> <@&${ID_ROL_SOPORTE}>`, embeds: [embed], components: [closeButton] });
@@ -1657,8 +2097,8 @@ client.on(Events.InteractionCreate, async (interaction) => {
       return;
     }
 
-    // ---- MODAL PROFESSIONS ----
-    if (interaction.type === 5 && interaction.customId === `professions_form_${lang}`) {
+    // Modal Professions
+    if (interaction.type === 5 && interaction.customId && interaction.customId === `professions_form_${lang}`) {
       await interaction.deferReply({ flags: MessageFlags.Ephemeral });
       try {
         await deleteMenuMessage(interaction.user.id);
@@ -1667,17 +2107,21 @@ client.on(Events.InteractionCreate, async (interaction) => {
           await interaction.editReply({ content: isEN ? `❌ You have a ticket: ${existingTicket}` : `❌ Ya tienes un ticket: ${existingTicket}` });
           return;
         }
+        
         const juegoServidor = interaction.fields.getTextInputValue("juego_servidor");
         const profesiones = interaction.fields.getTextInputValue("profesiones");
         const niveles = interaction.fields.getTextInputValue("niveles");
         const personajePago = interaction.fields.getTextInputValue("personaje_pago");
         const descripcion = interaction.fields.getTextInputValue("descripcion") || (isEN ? "None" : "Ninguna");
-        const description = isEN
+        
+        const description = isEN 
           ? `**Client:** <@${interaction.user.id}>\n**Service:** Professions\n**Game & Server:** ${juegoServidor}\n**Professions:** ${profesiones}\n**Levels:** ${niveles}\n**Character & Payment:** ${personajePago}\n**Description:** ${descripcion}`
           : `**Cliente:** <@${interaction.user.id}>\n**Servicio:** Profesiones\n**Juego y Servidor:** ${juegoServidor}\n**Profesiones:** ${profesiones}\n**Niveles:** ${niveles}\n**Personaje y Pago:** ${personajePago}\n**Descripción:** ${descripcion}`;
+        
         const category = await interaction.guild.channels.fetch(ID_CATEGORIA_TICKETS);
         const safeUsername = interaction.user.username.replace(/[^a-zA-Z0-9]/g, "-").substring(0, 20);
         const ticketName = `ticket-${safeUsername}`;
+        
         const ticketChannel = await interaction.guild.channels.create({
           name: ticketName,
           type: 0,
@@ -1688,6 +2132,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
             { id: ID_ROL_SOPORTE, allow: [PermissionsBitField.Flags.ViewChannel, PermissionsBitField.Flags.SendMessages, PermissionsBitField.Flags.ReadMessageHistory] }
           ]
         });
+        
         const embed = new EmbedBuilder().setTitle("⚙️ PROFESSIONS").setDescription(description).setColor(0x5865F2);
         const closeButton = new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId("close_ticket").setLabel(isEN ? "🔒 CLOSE" : "🔒 CERRAR").setStyle(ButtonStyle.Danger));
         await ticketChannel.send({ content: `<@${interaction.user.id}> <@&${ID_ROL_SOPORTE}>`, embeds: [embed], components: [closeButton] });
@@ -1701,26 +2146,50 @@ client.on(Events.InteractionCreate, async (interaction) => {
     }
 
   } catch (error) {
-    console.error("❌ Error en InteractionCreate:", error);
+    console.error("Error en InteractionCreate:", error);
     try {
       if (!interaction.replied && !interaction.deferred) {
         await interaction.reply({ content: isEN ? "❌ An error occurred" : "❌ Ocurrió un error", flags: MessageFlags.Ephemeral });
       } else {
         await interaction.followUp({ content: isEN ? "❌ An error occurred" : "❌ Ocurrió un error", flags: MessageFlags.Ephemeral });
       }
-    } catch (e) { console.error("Error al responder error:", e); }
+    } catch (e) {
+      console.error("Error al responder error:", e);
+    }
   }
 });
 
 // ========== SERVIDOR WEB ==========
+const express = require('express');
 const app = express();
 const port = process.env.PORT || 10000;
-app.get('/', (req, res) => res.send('Bot activo'));
-app.get('/ping', (req, res) => res.send('pong'));
-app.listen(port, () => console.log(`✅ Servidor web escuchando en puerto ${port}`));
+
+app.get('/', (req, res) => {
+  res.send('¡El bot TradeHub está funcionando correctamente!');
+});
+
+app.get('/ping', (req, res) => {
+  res.send('pong');
+});
+
+app.listen(port, () => {
+  console.log(`✅ Servidor web escuchando en el puerto ${port}`);
+});
 
 // ========== MANEJO DE CIERRE ==========
-process.on('SIGINT', () => { stopKeepAlive(); client.destroy(); process.exit(0); });
-process.on('SIGTERM', () => { stopKeepAlive(); client.destroy(); process.exit(0); });
+process.on('SIGINT', () => {
+  console.log('🛑 Apagando bot...');
+  stopKeepAlive();
+  client.destroy();
+  process.exit(0);
+});
 
+process.on('SIGTERM', () => {
+  console.log('🛑 Terminando bot...');
+  stopKeepAlive();
+  client.destroy();
+  process.exit(0);
+});
+
+// ========== INICIAR EL BOT ==========
 client.login(TOKEN);
