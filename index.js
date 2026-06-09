@@ -1065,6 +1065,9 @@ client.once(Events.ClientReady, async () => {
 });
 
 client.on(Events.InteractionCreate, async (interaction) => {
+  // 🔥 LOG PARA VER TODAS LAS INTERACCIONES
+  console.log(`[${new Date().toISOString()}] INTERACCIÓN RECIBIDA: Tipo=${interaction.type}, CustomId=${interaction.customId}, Canal=${interaction.channelId}`);
+
   let lang = "es";
   if (interaction.customId && interaction.customId.endsWith("_en")) lang = "en";
   else if (interaction.channelId === ID_CANAL_TICKET_EN) lang = "en";
@@ -1074,6 +1077,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
   try {
     // ========== COMANDOS SLASH ==========
     if (interaction.isCommand()) {
+      console.log(`✅ Comando slash recibido: ${interaction.commandName}`);
       await interaction.deferReply({ flags: MessageFlags.Ephemeral });
       
       if (!interaction.member.permissions.has(PermissionsBitField.Flags.Administrator)) {
@@ -1120,15 +1124,19 @@ client.on(Events.InteractionCreate, async (interaction) => {
       return;
     }
 
-    // ========== SOLO PARA MENÚS ==========
-    if (interaction.isStringSelectMenu()) {
+    // ========== DEFER UPDATE PARA MENÚS (excluyendo boost type) ==========
+    if (interaction.isStringSelectMenu() && 
+        interaction.customId !== `boost_type_menu_${lang}` && 
+        interaction.customId !== `ticket_boost_type_menu_${lang}`) {
       if (!interaction.deferred && !interaction.replied) {
+        console.log(`🔄 DeferUpdate para menú: ${interaction.customId}`);
         await interaction.deferUpdate().catch(() => {});
       }
     }
 
     // ========== ABRIR TICKET ==========
     if (interaction.isButton() && interaction.customId === `open_ticket_${lang}`) {
+      console.log(`🎫 Botón ABRIR TICKET presionado`);
       if (!interaction.deferred && !interaction.replied) {
         await interaction.deferUpdate();
       }
@@ -1144,6 +1152,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
 
     // ========== BOTONES VOLVER ==========
     if (interaction.isButton() && (interaction.customId === `back_marketplace_${lang}` || interaction.customId === `back_ticket_${lang}` || interaction.customId === `back_${lang}` || interaction.customId === `back_streaming_${lang}` || interaction.customId === `back_giftcards_${lang}` || interaction.customId === `back_p2p_${lang}`)) {
+      console.log(`🔙 Botón VOLVER: ${interaction.customId}`);
       if (!interaction.deferred && !interaction.replied) {
         await interaction.deferUpdate();
       }
@@ -1200,15 +1209,17 @@ client.on(Events.InteractionCreate, async (interaction) => {
 
     // ========== CERRAR TICKET ==========
     if (interaction.isButton() && interaction.customId === "close_ticket") {
+      console.log(`🔒 Cerrando ticket`);
       await interaction.reply({ content: isEN ? "🔒 Closing..." : "🔒 Cerrando...", flags: MessageFlags.Ephemeral });
       setTimeout(() => interaction.channel.delete().catch(() => {}), 5000);
       return;
     }
 
-    // ========== BOTONES QUE MUESTRAN MODALES (NO hacer deferUpdate) ==========
+    // ========== BOTONES QUE MUESTRAN MODALES ==========
     
     // Botones Streaming
     if (interaction.isButton() && interaction.customId.startsWith("buy_streaming_")) {
+      console.log(`📺 Botón STREAMING: ${interaction.customId}`);
       const parts = interaction.customId.split("_");
       const serviceName = parts.slice(2).join("_").replace(`_${lang}`, "").replace(/_/g, ' ');
       const btns = lang === "en" ? buttonsEN : buttonsES;
@@ -1223,6 +1234,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
 
     // Botones Gift Cards
     if (interaction.isButton() && interaction.customId.startsWith("buy_giftcard_")) {
+      console.log(`🎁 Botón GIFT CARD: ${interaction.customId}`);
       const parts = interaction.customId.split("_");
       const cardName = parts.slice(2).join("_").replace(`_${lang}`, "").replace(/_/g, ' ');
       const btns = lang === "en" ? buttonsEN : buttonsES;
@@ -1253,18 +1265,13 @@ client.on(Events.InteractionCreate, async (interaction) => {
       return;
     }
     if (interaction.isButton() && interaction.customId === `buy_wowgt_${lang}`) {
-      const btns = lang === "en" ? buttonsEN : buttonsES;
-      if (btns.wow_gt?.buy === false) {
-        await interaction.reply({ content: isEN ? "❌ Service not available" : "❌ Servicio no disponible", flags: MessageFlags.Ephemeral });
-        return;
-      }
-      cancelReset(interaction.user.id);
       await showWowGTForm(interaction, lang);
       return;
     }
 
     // Botones Compra/Venta (Oro)
     if (interaction.isButton() && (interaction.customId.startsWith("buy_") || interaction.customId.startsWith("sell_") || interaction.customId.startsWith("ticket_buy_") || interaction.customId.startsWith("ticket_sell_"))) {
+      console.log(`💰 Botón COMPRA/VENTA: ${interaction.customId}`);
       if (!interaction.customId.includes("streaming") && !interaction.customId.includes("giftcard") && !interaction.customId.includes("zinli") && !interaction.customId.includes("paypal") && !interaction.customId.includes("bolivares") && !interaction.customId.includes("usdt") && !interaction.customId.includes("wowgt")) {
         const parts = interaction.customId.split("_");
         const isTicketButton = parts[0] === "ticket";
@@ -1286,6 +1293,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
 
     // ========== MENÚ PRINCIPAL DE PRECIOS ==========
     if (interaction.isStringSelectMenu() && interaction.customId === `main_menu_${lang}`) {
+      console.log(`📋 Menú principal: ${interaction.values[0]}`);
       const key = interaction.values[0];
       const btns = lang === "en" ? buttonsEN : buttonsES;
       cancelCategoryReset(interaction.user.id);
@@ -1366,6 +1374,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
 
     // ========== MENÚ PRINCIPAL DE TICKETS ==========
     if (interaction.isStringSelectMenu() && interaction.customId === `ticket_main_menu_${lang}`) {
+      console.log(`🎫 Menú ticket principal: ${interaction.values[0]}`);
       const key = interaction.values[0];
       const btns = lang === "en" ? buttonsEN : buttonsES;
       
@@ -1455,6 +1464,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
 
     // ========== MARKETPLACE MENU ==========
     if (interaction.isStringSelectMenu() && interaction.customId === `marketplace_menu_${lang}`) {
+      console.log(`🛒 Menú marketplace: ${interaction.values[0]}`);
       const key = interaction.values[0];
       const data = lang === "en" ? dataEN : dataES;
       cancelCategoryReset(interaction.user.id);
@@ -1510,6 +1520,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
 
     // ========== STREAMING SERVICES MENU ==========
     if (interaction.isStringSelectMenu() && interaction.customId === `streaming_services_menu_${lang}`) {
+      console.log(`📺 Menú streaming: ${interaction.values[0]}`);
       const value = interaction.values[0];
       const serviceName = value.replace("streaming_", "").replace(/_/g, ' ').split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
       const data = lang === "en" ? dataEN : dataES;
@@ -1522,6 +1533,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
 
     // ========== GIFT CARDS MENU ==========
     if (interaction.isStringSelectMenu() && interaction.customId === `giftcards_menu_${lang}`) {
+      console.log(`🎁 Menú gift cards: ${interaction.values[0]}`);
       const value = interaction.values[0];
       const cardName = value.replace("giftcard_", "").replace(/_/g, ' ');
       const data = lang === "en" ? dataEN : dataES;
@@ -1534,6 +1546,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
 
     // ========== P2P CATEGORIES MENU ==========
     if (interaction.isStringSelectMenu() && interaction.customId === `p2p_categories_menu_${lang}`) {
+      console.log(`💳 Menú P2P: ${interaction.values[0]}`);
       const value = interaction.values[0];
       let categoryKey = value.replace("p2p_", "");
       let displayName = "";
@@ -1549,6 +1562,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
     // ========== TICKET BOOST TYPE MENU ==========
     if (interaction.isStringSelectMenu() && interaction.customId === `ticket_boost_type_menu_${lang}`) {
       const boostType = interaction.values[0];
+      console.log(`🎮 Ticket Boost Type: ${boostType}`);
       if (boostType === "leveling") {
         await showLevelingForm(interaction, lang);
       } else if (boostType === "professions") {
@@ -1559,6 +1573,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
 
     // ========== SUB-MENÚS ==========
     if (interaction.isStringSelectMenu() && interaction.customId === `sub_${lang}`) {
+      console.log(`📂 Submenú: ${interaction.values[0]}`);
       const selectedValue = interaction.values[0];
       const data = lang === "en" ? dataEN : dataES;
       const game = data[selectedValue];
@@ -1576,6 +1591,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
 
     // ========== SELECCIÓN DE SERVIDOR ==========
     if (interaction.isStringSelectMenu() && interaction.customId.startsWith(`select_`)) {
+      console.log(`🖥️ Selección de servidor: ${interaction.values[0]}`);
       const parts = interaction.customId.split("_");
       const gameKey = parts[1];
       const data = lang === "en" ? dataEN : dataES;
@@ -1599,6 +1615,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
     // ========== BOOST TYPE MENU ==========
     if (interaction.isStringSelectMenu() && interaction.customId === `boost_type_menu_${lang}`) {
       const boostType = interaction.values[0];
+      console.log(`🚀 Boost Type (principal): ${boostType}`);
       if (boostType === "leveling") {
         await showLevelingForm(interaction, lang);
       } else if (boostType === "professions") {
@@ -1610,7 +1627,8 @@ client.on(Events.InteractionCreate, async (interaction) => {
     // ========== MODALES ==========
     
     // Modal Oro
-    if (interaction.type === 5 && interaction.customId && interaction.customId === `gold_form_${lang}`) {
+    if (interaction.type === 5 && interaction.customId === `gold_form_${lang}`) {
+      console.log(`💰 Modal ORO recibido`);
       await interaction.deferReply({ flags: MessageFlags.Ephemeral });
       try {
         await deleteMenuMessage(interaction.user.id);
@@ -1659,6 +1677,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
 
     // Modal Streaming
     if (interaction.type === 5 && interaction.customId && interaction.customId.startsWith("streaming_form_")) {
+      console.log(`📺 Modal STREAMING recibido`);
       await interaction.deferReply({ flags: MessageFlags.Ephemeral });
       try {
         await deleteMenuMessage(interaction.user.id);
@@ -1709,6 +1728,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
 
     // Modal Gift Card
     if (interaction.type === 5 && interaction.customId && interaction.customId.startsWith("giftcard_form_")) {
+      console.log(`🎁 Modal GIFT CARD recibido`);
       await interaction.deferReply({ flags: MessageFlags.Ephemeral });
       try {
         await deleteMenuMessage(interaction.user.id);
@@ -1759,6 +1779,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
 
     // Modal Zinli
     if (interaction.type === 5 && interaction.customId && interaction.customId.startsWith("zinli_form_")) {
+      console.log(`💳 Modal ZINLI recibido`);
       await interaction.deferReply({ flags: MessageFlags.Ephemeral });
       try {
         await deleteMenuMessage(interaction.user.id);
@@ -1808,6 +1829,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
 
     // Modal PayPal
     if (interaction.type === 5 && interaction.customId && interaction.customId.startsWith("paypal_form_")) {
+      console.log(`💳 Modal PAYPAL recibido`);
       await interaction.deferReply({ flags: MessageFlags.Ephemeral });
       try {
         await deleteMenuMessage(interaction.user.id);
@@ -1857,6 +1879,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
 
     // Modal Bolívares → USDT
     if (interaction.type === 5 && interaction.customId && interaction.customId.startsWith("bolivares_to_usdt_form_")) {
+      console.log(`🇻🇪 Modal BOLÍVARES → USDT recibido`);
       await interaction.deferReply({ flags: MessageFlags.Ephemeral });
       try {
         await deleteMenuMessage(interaction.user.id);
@@ -1907,6 +1930,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
 
     // Modal USDT → Bolívares
     if (interaction.type === 5 && interaction.customId && interaction.customId.startsWith("usdt_to_bolivares_form_")) {
+      console.log(`🇻🇪 Modal USDT → BOLÍVARES recibido`);
       await interaction.deferReply({ flags: MessageFlags.Ephemeral });
       try {
         await deleteMenuMessage(interaction.user.id);
@@ -1955,8 +1979,9 @@ client.on(Events.InteractionCreate, async (interaction) => {
       return;
     }
 
-    // Modal Wow Game Time
-    if (interaction.type === 5 && interaction.customId && interaction.customId === `wowgt_form_${lang}`) {
+    // Modal WoW Game Time
+    if (interaction.type === 5 && interaction.customId === `wowgt_form_${lang}`) {
+      console.log(`🕒 Modal WOW GT recibido`);
       await interaction.deferReply({ flags: MessageFlags.Ephemeral });
       try {
         await deleteMenuMessage(interaction.user.id);
@@ -2002,7 +2027,8 @@ client.on(Events.InteractionCreate, async (interaction) => {
     }
 
     // Modal Other
-    if (interaction.type === 5 && interaction.customId && interaction.customId === `other_form_${lang}`) {
+    if (interaction.type === 5 && interaction.customId === `other_form_${lang}`) {
+      console.log(`❓ Modal OTHER recibido`);
       await interaction.deferReply({ flags: MessageFlags.Ephemeral });
       try {
         await deleteMenuMessage(interaction.user.id);
@@ -2050,7 +2076,8 @@ client.on(Events.InteractionCreate, async (interaction) => {
     // ========== MODALES DE BOOSTING ==========
 
     // Modal Leveling
-    if (interaction.type === 5 && interaction.customId && interaction.customId === `leveling_form_${lang}`) {
+    if (interaction.type === 5 && interaction.customId === `leveling_form_${lang}`) {
+      console.log(`📈 Modal LEVELING recibido`);
       await interaction.deferReply({ flags: MessageFlags.Ephemeral });
       try {
         await deleteMenuMessage(interaction.user.id);
@@ -2098,7 +2125,8 @@ client.on(Events.InteractionCreate, async (interaction) => {
     }
 
     // Modal Professions
-    if (interaction.type === 5 && interaction.customId && interaction.customId === `professions_form_${lang}`) {
+    if (interaction.type === 5 && interaction.customId === `professions_form_${lang}`) {
+      console.log(`⚙️ Modal PROFESSIONS recibido`);
       await interaction.deferReply({ flags: MessageFlags.Ephemeral });
       try {
         await deleteMenuMessage(interaction.user.id);
@@ -2146,7 +2174,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
     }
 
   } catch (error) {
-    console.error("Error en InteractionCreate:", error);
+    console.error("❌ Error en InteractionCreate:", error);
     try {
       if (!interaction.replied && !interaction.deferred) {
         await interaction.reply({ content: isEN ? "❌ An error occurred" : "❌ Ocurrió un error", flags: MessageFlags.Ephemeral });
