@@ -1205,7 +1205,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
       return;
     }
 
-    // ========== BOTONES QUE MUESTRAN MODALES (NO hacer deferUpdate) ==========
+    // ========== BOTONES QUE MUESTRAN MODALES ==========
     
     // Botones Streaming
     if (interaction.isButton() && interaction.customId.startsWith("buy_streaming_")) {
@@ -2176,21 +2176,6 @@ app.get('/ping', (req, res) => {
 
 app.listen(port, () => {
   console.log(`✅ Servidor web escuchando en el puerto ${port}`);
-});
-
-// ========== MANEJO DE CIERRE ==========
-process.on('SIGINT', () => {
-  console.log('🛑 Apagando bot...');
-  stopKeepAlive();
-  client.destroy();
-  process.exit(0);
-});
-
-process.on('SIGTERM', () => {
-  console.log('🛑 Terminando bot...');
-  stopKeepAlive();
-  client.destroy();
-  process.exit(0);
 });
 
 // ========== INICIAR EL BOT ==========
